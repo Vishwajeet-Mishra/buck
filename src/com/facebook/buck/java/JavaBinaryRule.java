@@ -39,7 +39,6 @@ import com.facebook.buck.step.fs.MkdirStep;
 import com.facebook.buck.util.BuckConstant;
 import com.facebook.buck.util.DefaultDirectoryTraverser;
 import com.facebook.buck.util.DirectoryTraverser;
-import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -186,7 +185,7 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
         getBuildTarget().getFullyQualifiedName());
 
     return String.format("java -jar %s",
-        projectFilesystem.getPathRelativiser().apply(MorePaths.newPathInstance(getOutputFile())));
+        projectFilesystem.getPathRelativiser().apply(newPathInstance(getOutputFile())));
   }
 
   public static class Builder extends AbstractBuildRuleBuilder<JavaBinaryRule> {

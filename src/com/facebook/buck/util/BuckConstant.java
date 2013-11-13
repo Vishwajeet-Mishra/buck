@@ -17,8 +17,6 @@
 package com.facebook.buck.util;
 
 
-import java.nio.file.Path;
-
 public class BuckConstant {
 
   /**

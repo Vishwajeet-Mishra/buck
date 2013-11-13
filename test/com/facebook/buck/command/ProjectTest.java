@@ -225,7 +225,7 @@ public class ProjectTest {
   public void testGenerateRelativeGenPath() {
     String basePathOfModuleWithSlash = "android_res/com/facebook/gifts/";
     Path expectedRelativePathToGen =
-        java.nio.file.Paths.get("/../../../../buck-out/android/android_res/com/facebook/gifts/gen");
+        Paths.get("/../../../../buck-out/android/android_res/com/facebook/gifts/gen");
     assertEquals(
         expectedRelativePathToGen, Project.generateRelativeGenPath(basePathOfModuleWithSlash));
   }
