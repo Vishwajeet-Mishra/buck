@@ -17,6 +17,7 @@
 package com.facebook.buck.java;
 
 import static com.facebook.buck.rules.BuildableProperties.Kind.PACKAGING;
+import static com.facebook.buck.util.MorePaths.newPathInstance;
 
 import com.facebook.buck.model.BuildTarget;
 import com.facebook.buck.rules.AbstractBuildRuleBuilder;
@@ -148,7 +149,8 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
     }
 
     String outputFile = getOutputFile();
-    Step jar = new JarDirectoryStep(outputFile, includePaths, mainClass, manifestFile);
+    Step jar = new JarDirectoryStep(
+        newPathInstance(outputFile), includePaths, mainClass, manifestFile);
     commands.add(jar);
 
     return commands.build();

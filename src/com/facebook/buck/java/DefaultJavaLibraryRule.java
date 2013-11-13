@@ -109,7 +109,7 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
 
   private final ImmutableSortedSet<SourcePath> resources;
 
-  private final Optional<String> outputJar;
+  private final Optional<Path> outputJar;
 
   private final List<String> inputsToConsiderForCachingPurposes;
 
@@ -356,19 +356,16 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
     return String.format("%s/abi", getPathToAbiOutputDir());
   }
 
-  private static String getOutputJarDirPath(BuildTarget target) {
-    return String.format(
+  private static Path getOutputJarDirPath(BuildTarget target) {
+    return MorePaths.newPathInstance(String.format(
         "%s/%slib__%s__output",
         BuckConstant.GEN_DIR,
         target.getBasePathWithSlash(),
-        target.getShortName());
+        target.getShortName()));
   }
 
-  private static String getOutputJarPath(BuildTarget target) {
-    return String.format(
-        "%s/%s.jar",
-        getOutputJarDirPath(target),
-        target.getShortName());
+  private static Path getOutputJarPath(BuildTarget target) {
+    return getOutputJarDirPath(target).resolve(String.format("%s.jar", target.getShortName()));
   }
 
   /**
@@ -792,7 +789,10 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
 
   @Override
   public String getPathToOutputFile() {
-    return outputJar.orNull();
+    if (outputJar.isPresent()) {
+      return outputJar.get().toString();
+    }
+    return null;
   }
 
   public static Builder newJavaLibraryRuleBuilder(AbstractBuildRuleBuilderParams params) {

@@ -37,6 +37,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -52,7 +53,7 @@ public class JarDirectoryStepTest {
     File first = createZip(new File(zipup, "a.zip"), "example.txt");
     File second = createZip(new File(zipup, "b.zip"), "example.txt");
 
-    JarDirectoryStep step = new JarDirectoryStep("output.jar",
+    JarDirectoryStep step = new JarDirectoryStep(Paths.get("output.jar"),
         ImmutableSet.of(first.getName(), second.getName()),
         "com.example.Main",
         /* manifest file */ null);
@@ -79,7 +80,7 @@ public class JarDirectoryStepTest {
     File first = createZip(new File(zipup, "first.zip"), "dir/example.txt", "dir/root1file.txt");
     File second = createZip(new File(zipup, "second.zip"), "dir/example.txt", "dir/root2file.txt");
 
-    JarDirectoryStep step = new JarDirectoryStep("output.jar",
+    JarDirectoryStep step = new JarDirectoryStep(Paths.get("output.jar"),
         ImmutableSet.of(first.getName(), second.getName()),
         "com.example.Main",
         /* manifest file */ null);
@@ -127,7 +128,7 @@ public class JarDirectoryStepTest {
 
     File output = new File(tmp, "output.jar");
     JarDirectoryStep step = new JarDirectoryStep(
-        "output.jar",
+        Paths.get("output.jar"),
         ImmutableSet.of("input.jar"),
         /* main class */ null,
         "manifest");
