@@ -156,11 +156,11 @@ public class AndroidTransitiveDependencyGraph {
 
     // Paths to native libs directories (often named libs/) that should be included as raw files
     // directories in the final APK.
-    final ImmutableSet.Builder<String> nativeLibsDirectories = ImmutableSet.builder();
+    final ImmutableSet.Builder<Path> nativeLibsDirectories = ImmutableSet.builder();
 
     // Paths to native libs directories that are to be treated as assets and so should be included
     // as raw files under /assets/lib/ directory in the APK.
-    final ImmutableSet.Builder<String> nativeLibAssetsDirectories = ImmutableSet.builder();
+    final ImmutableSet.Builder<Path> nativeLibAssetsDirectories = ImmutableSet.builder();
 
     // Path to the module's manifest file
     final ImmutableSet.Builder<String> manifestFiles = ImmutableSet.builder();

@@ -441,7 +441,7 @@ public class Project {
         NdkLibrary ndkLibrary = (NdkLibrary) projectRule.getBuildable();
         module.isAndroidLibraryProject = true;
         module.keystorePath = null;
-        module.nativeLibs = Paths.get(relativePath).relativize(Paths.get(ndkLibrary.getLibraryPath())).toString();
+        module.nativeLibs = Paths.get(relativePath).relativize(ndkLibrary.getLibraryPath()).toString();
       } else if (projectRule instanceof AndroidResourceRule) {
         AndroidResourceRule androidResourceRule = (AndroidResourceRule)projectRule;
         module.resFolder = createRelativePath(androidResourceRule.getRes(), target);

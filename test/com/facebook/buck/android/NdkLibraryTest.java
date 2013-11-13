@@ -78,7 +78,8 @@ public class NdkLibraryTest {
 
     assertTrue(ndkLibrary.getProperties().is(ANDROID));
     assertTrue(ndkLibrary.isAsset());
-    assertEquals(BuckConstant.GEN_DIR + "/" + basePath + "/__libbase", ndkLibrary.getLibraryPath());
+    assertEquals(Paths.get(BuckConstant.GEN_DIR + "/" + basePath + "/__libbase"),
+        ndkLibrary.getLibraryPath());
 
     MoreAsserts.assertListEquals(
         ImmutableList.of(
@@ -91,14 +92,14 @@ public class NdkLibraryTest {
 
     ExecutionContext executionContext = createMock(ExecutionContext.class);
     ProjectFilesystem projectFilesystem = createMock(ProjectFilesystem.class);
-    Function<String, Path> pathTransform = new Function<String, Path>() {
+    Function<Path, Path> pathTransform = new Function<Path, Path>() {
       @Override
-      public Path apply(String pathRelativeTo) {
-        return Paths.get("/foo/", pathRelativeTo);
+      public Path apply(Path pathRelativeTo) {
+        return Paths.get("/foo/").resolve(pathRelativeTo);
       }
     };
     expect(executionContext.getProjectFilesystem()).andReturn(projectFilesystem);
-    expect(projectFilesystem.getPathRelativizer()).andReturn(pathTransform);
+    expect(projectFilesystem.getPathRelativiser()).andReturn(pathTransform);
     Path binDir = Paths.get(BuckConstant.BIN_DIR, "java/src/com/facebook/base/__libbase/libs");
     expect(projectFilesystem.resolve(binDir)).andReturn(Paths.get("/foo/" + binDir));
     File ndkDir = createMock(File.class);
@@ -110,7 +111,7 @@ public class NdkLibraryTest {
         "ndk_library() should invoke ndk-build on the given path with some -j value",
         ImmutableList.of(
             String.format(
-              "/ndk-r8b/ndk-build -j %d -C %s/ flag1 flag2 " +
+              "/ndk-r8b/ndk-build -j %d -C %s flag1 flag2 " +
               "APP_PROJECT_PATH=/foo/%s/%s/%s/ APP_BUILD_SCRIPT=/foo/%s/Android.mk " +
               "NDK_OUT=/foo/%s/%s/%s/ " +
               "NDK_LIBS_OUT=/foo/%s/%s/%s/libs",

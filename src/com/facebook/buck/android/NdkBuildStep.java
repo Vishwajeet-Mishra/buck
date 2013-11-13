@@ -31,21 +31,20 @@ import java.nio.file.Path;
 
 public class NdkBuildStep extends ShellStep {
 
-  private final String makefileDirectory;
-  private final String makefilePath;
-  private final String buildArtifactsDirectory;
+  private final Path makefileDirectory;
+  private final Path makefilePath;
+  private final Path buildArtifactsDirectory;
   private final Path binDirectory;
   private final ImmutableList<String> flags;
   private final int maxJobCount;
 
   public NdkBuildStep(
-      String makefileDirectory,
-      String buildArtifactsDirectory,
+      Path makefileDirectory,
+      Path buildArtifactsDirectory,
       Path binDirectory,
       Iterable<String> flags) {
     this.makefileDirectory = Preconditions.checkNotNull(makefileDirectory);
-    Preconditions.checkArgument(makefileDirectory.endsWith("/"));
-    this.makefilePath = this.makefileDirectory + "Android.mk";
+    this.makefilePath = this.makefileDirectory.resolve("Android.mk");
     this.buildArtifactsDirectory = Preconditions.checkNotNull(buildArtifactsDirectory);
     this.binDirectory = Preconditions.checkNotNull(binDirectory);
     this.flags = ImmutableList.copyOf(flags);
@@ -77,12 +76,12 @@ public class NdkBuildStep extends ShellStep {
         "-j",
         Integer.toString(this.maxJobCount),
         "-C",
-        this.makefileDirectory);
+        this.makefileDirectory.toString());
 
     builder.addAll(this.flags);
 
     ProjectFilesystem projectFilesystem = context.getProjectFilesystem();
-    Function<String, Path> pathRelativizer = projectFilesystem.getPathRelativizer();
+    Function<Path, Path> pathRelativizer = projectFilesystem.getPathRelativiser();
     builder.add(
         "APP_PROJECT_PATH=" + pathRelativizer.apply(this.buildArtifactsDirectory) + "/",
         "APP_BUILD_SCRIPT=" + pathRelativizer.apply(this.makefilePath),

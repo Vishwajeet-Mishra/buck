@@ -30,11 +30,13 @@ import com.facebook.buck.rules.RuleKey;
 import com.facebook.buck.step.Step;
 import com.facebook.buck.util.DefaultDirectoryTraverser;
 import com.facebook.buck.util.DirectoryTraverser;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -54,10 +56,10 @@ import javax.annotation.Nullable;
 public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLibraryBuildable {
 
   private final boolean isAsset;
-  private final String libraryPath;
+  private final Path libraryPath;
   private final DirectoryTraverser directoryTraverser;
 
-  protected PrebuiltNativeLibrary(String nativeLibsDirectory,
+  protected PrebuiltNativeLibrary(Path nativeLibsDirectory,
                                   boolean isAsset,
                                   DirectoryTraverser directoryTraverser) {
     this.isAsset = isAsset;
@@ -71,14 +73,14 @@ public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLi
   }
 
   @Override
-  public String getLibraryPath() {
+  public Path getLibraryPath() {
     return libraryPath;
   }
 
   @Override
   public RuleKey.Builder appendDetailsToRuleKey(RuleKey.Builder builder) throws IOException {
     return builder
-        .set("nativeLibs", getLibraryPath())
+        .setInput("nativeLibs", getLibraryPath())
         .set("is_asset", isAsset());
   }
 
@@ -87,7 +89,7 @@ public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLi
     ImmutableSortedSet.Builder<String> inputsToConsiderForCachingPurposes = ImmutableSortedSet
         .naturalOrder();
 
-    Buildables.addInputsToSortedSet(getLibraryPath(),
+    Buildables.addInputsToSortedSet(getLibraryPath().toString(),
         inputsToConsiderForCachingPurposes,
         directoryTraverser);
 
@@ -115,7 +117,7 @@ public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLi
 
     private boolean isAsset = false;
     @Nullable
-    private String nativeLibs = null;
+    private Path nativeLibs = null;
 
     private Builder(AbstractBuildRuleBuilderParams params) {
       super(params);
@@ -156,7 +158,7 @@ public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLi
     }
 
     public Builder setNativeLibsDirectory(String nativeLibs) {
-      this.nativeLibs = nativeLibs;
+      this.nativeLibs = MorePaths.newPathInstance(nativeLibs);
       return this;
     }
 

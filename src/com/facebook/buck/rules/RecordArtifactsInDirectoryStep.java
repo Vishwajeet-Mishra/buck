@@ -39,7 +39,7 @@ public class RecordArtifactsInDirectoryStep extends AbstractExecutionStep {
 
   private final BuildableContext buildableContext;
   private final Path binDirectory;
-  private final String genDirectory;
+  private final Path genDirectory;
   private final Function<String, Path> artifactPathTransform;
 
   /**
@@ -51,7 +51,7 @@ public class RecordArtifactsInDirectoryStep extends AbstractExecutionStep {
    */
   public RecordArtifactsInDirectoryStep(BuildableContext buildableContext,
       Path binDirectory,
-      String genDirectory,
+      Path genDirectory,
       Function<String, Path> artifactPathTransform) {
     super("recording artifacts in " + binDirectory);
     this.buildableContext = Preconditions.checkNotNull(buildableContext);

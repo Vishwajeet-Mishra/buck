@@ -32,6 +32,7 @@ import com.google.common.collect.Iterables;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.nio.file.Path;
 
 /**
  * Merges resources into a final APK.  This code is based off of the now deprecated apkbuilder tool:
@@ -43,7 +44,7 @@ public class ApkBuilderStep implements Step {
   private final String dexFile;
   private final String pathToOutputApkFile;
   private final ImmutableSet<String> assetDirectories;
-  private final ImmutableSet<String> nativeLibraryDirectories;
+  private final ImmutableSet<Path> nativeLibraryDirectories;
   private final ImmutableSet<String> zipFiles;
   private final boolean debugMode;
 
@@ -62,7 +63,7 @@ public class ApkBuilderStep implements Step {
       String pathToOutputApkFile,
       String dexFile,
       ImmutableSet<String> javaResourcesDirectories,
-      ImmutableSet<String> nativeLibraryDirectories,
+      ImmutableSet<Path> nativeLibraryDirectories,
       ImmutableSet<String> zipFiles,
       boolean debugMode) {
     this.resourceApk = Preconditions.checkNotNull(resourceApk);
@@ -90,7 +91,7 @@ public class ApkBuilderStep implements Step {
           /* storeOsPath */ null,
           output);
       builder.setDebugMode(debugMode);
-      for (String nativeLibraryDirectory : nativeLibraryDirectories) {
+      for (Path nativeLibraryDirectory : nativeLibraryDirectories) {
         builder.addNativeLibraries(projectFilesystem.getFileForRelativePath(nativeLibraryDirectory));
       }
       for (String assetDirectory : assetDirectories) {
@@ -131,9 +132,9 @@ public class ApkBuilderStep implements Step {
         "com.android.sdklib.build.ApkBuilderMain",
         pathToOutputApkFile,
         Joiner.on(' ').join(Iterables.transform(nativeLibraryDirectories,
-            new Function<String, String>() {
+            new Function<Path, String>() {
               @Override
-              public String apply(String s) {
+              public String apply(Path s) {
                 return "-nf " + s;
               }
             })),

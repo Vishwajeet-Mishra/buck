@@ -21,16 +21,16 @@ import java.nio.file.Path;
 
 public class AndroidTransitiveDependencies {
   public final ImmutableSet<String> assetsDirectories;
-  public final ImmutableSet<String> nativeLibsDirectories;
-  public final ImmutableSet<String> nativeLibAssetsDirectories;
+  public final ImmutableSet<Path> nativeLibsDirectories;
+  public final ImmutableSet<Path> nativeLibAssetsDirectories;
   public final ImmutableSet<String> manifestFiles;
   public final ImmutableSet<Path> resDirectories;
   public final ImmutableSet<String> rDotJavaPackages;
   public final ImmutableSet<String> proguardConfigs;
 
   public AndroidTransitiveDependencies(ImmutableSet<String> assetsDirectories,
-                                       ImmutableSet<String> nativeLibsDirectories,
-                                       ImmutableSet<String> nativeLibAssetsDirectories,
+                                       ImmutableSet<Path> nativeLibsDirectories,
+                                       ImmutableSet<Path> nativeLibAssetsDirectories,
                                        ImmutableSet<String> manifestFiles,
                                        ImmutableSet<Path> resDirectories,
                                        ImmutableSet<String> rDotJavaPackages,

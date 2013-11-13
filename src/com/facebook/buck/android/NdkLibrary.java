@@ -34,6 +34,7 @@ import com.facebook.buck.rules.RuleKey;
 import com.facebook.buck.rules.SrcsAttributeBuilder;
 import com.facebook.buck.step.Step;
 import com.facebook.buck.util.BuckConstant;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
@@ -70,10 +71,10 @@ public class NdkLibrary extends AbstractBuildable implements NativeLibraryBuilda
   private final boolean isAsset;
 
   /** The directory containing the Android.mk file to use. This value includes a trailing slash. */
-  private final String makefileDirectory;
+  private final Path makefileDirectory;
   private final String lastPathComponent;
-  private final String buildArtifactsDirectory;
-  private final String genDirectory;
+  private final Path buildArtifactsDirectory;
+  private final Path genDirectory;
 
   private final ImmutableSortedSet<Path> sources;
   private final ImmutableList<String> flags;
@@ -85,7 +86,7 @@ public class NdkLibrary extends AbstractBuildable implements NativeLibraryBuilda
       boolean isAsset) {
     this.isAsset = isAsset;
 
-    this.makefileDirectory = buildTarget.getBasePathWithSlash();
+    this.makefileDirectory = MorePaths.newPathInstance(buildTarget.getBasePath());
     this.lastPathComponent = "__lib" + buildTarget.getShortName();
     this.buildArtifactsDirectory = getBuildArtifactsDirectory(buildTarget, true /* isScratchDir */);
     this.genDirectory = getBuildArtifactsDirectory(buildTarget, false /* isScratchDir */);
@@ -102,7 +103,7 @@ public class NdkLibrary extends AbstractBuildable implements NativeLibraryBuilda
   }
 
   @Override
-  public String getLibraryPath() {
+  public Path getLibraryPath() {
     return genDirectory;
   }
 
@@ -118,7 +119,7 @@ public class NdkLibrary extends AbstractBuildable implements NativeLibraryBuilda
       throws IOException {
     // .so files are written to the libs/ subdirectory of the output directory.
     // All of them should be recorded via the BuildableContext.
-    Path binDirectory = Paths.get(buildArtifactsDirectory, "libs");
+    Path binDirectory = buildArtifactsDirectory.resolve("libs");
     Step nkdBuildStep = new NdkBuildStep(makefileDirectory,
         buildArtifactsDirectory,
         binDirectory,
@@ -144,11 +145,11 @@ public class NdkLibrary extends AbstractBuildable implements NativeLibraryBuilda
    *     where the "official" outputs of the build rule should be written. Files of the latter type
    *     can be referenced via the genfile() function.
    */
-  private String getBuildArtifactsDirectory(BuildTarget target, boolean isScratchDir) {
-    return String.format("%s/%s%s",
+  private Path getBuildArtifactsDirectory(BuildTarget target, boolean isScratchDir) {
+    return MorePaths.newPathInstance(String.format("%s/%s%s",
         isScratchDir ? BuckConstant.BIN_DIR : BuckConstant.GEN_DIR,
         target.getBasePathWithSlash(),
-        lastPathComponent);
+        lastPathComponent));
   }
 
   @Override

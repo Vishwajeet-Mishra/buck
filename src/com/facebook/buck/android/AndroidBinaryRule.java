@@ -367,21 +367,18 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   }
 
   @VisibleForTesting
-  void copyNativeLibrary(String sourceDir,
-      String destinationDir,
+  void copyNativeLibrary(Path sourceDir,
+      Path destinationDir,
       ImmutableList.Builder<Step> commands) {
-    Path sourceDirPath = Paths.get(sourceDir);
-    Path destinationDirPath = Paths.get(destinationDir);
-
     if (getCpuFilters().isEmpty()) {
-      commands.add(new CopyStep(sourceDirPath, destinationDirPath, true));
+      commands.add(new CopyStep(sourceDir, destinationDir, true));
     } else {
       for (TargetCpuType cpuType: getCpuFilters()) {
         Optional<String> abiDirectoryComponent = getAbiDirectoryComponent(cpuType);
         Preconditions.checkState(abiDirectoryComponent.isPresent());
 
-        final Path libSourceDir = sourceDirPath.resolve(abiDirectoryComponent.get());
-        Path libDestinationDir = destinationDirPath.resolve(abiDirectoryComponent.get());
+        final Path libSourceDir = sourceDir.resolve(abiDirectoryComponent.get());
+        Path libDestinationDir = destinationDir.resolve(abiDirectoryComponent.get());
 
         final MkdirStep mkDirStep = new MkdirStep(libDestinationDir);
         final CopyStep copyStep = new CopyStep(libSourceDir, libDestinationDir, true);
@@ -669,13 +666,13 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     commands.add(collectAssets);
 
     // Copy the transitive closure of files in native_libs to a single directory, if any.
-    ImmutableSet.Builder<String> nativeLibraryDirectories = ImmutableSet.builder();
+    ImmutableSet.Builder<Path> nativeLibraryDirectories = ImmutableSet.builder();
     if (!transitiveDependencies.nativeLibsDirectories.isEmpty()) {
       Path pathForNativeLibs = getPathForNativeLibs();
-      String libSubdirectory = pathForNativeLibs + "/lib";
+      Path libSubdirectory = pathForNativeLibs.resolve("/lib");
       nativeLibraryDirectories.add(libSubdirectory);
       commands.add(new MakeCleanDirectoryStep(libSubdirectory));
-      for (String nativeLibDir : transitiveDependencies.nativeLibsDirectories) {
+      for (Path nativeLibDir : transitiveDependencies.nativeLibsDirectories) {
         copyNativeLibrary(nativeLibDir, libSubdirectory, commands);
       }
     }
@@ -694,9 +691,9 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     }
 
     if (!transitiveDependencies.nativeLibAssetsDirectories.isEmpty()) {
-      String nativeLibAssetsDir = assetsDirectory.get() + "/lib";
+      Path nativeLibAssetsDir = assetsDirectory.get().resolve("/lib");
       commands.add(new MakeCleanDirectoryStep(nativeLibAssetsDir));
-      for (String nativeLibDir : transitiveDependencies.nativeLibAssetsDirectories) {
+      for (Path nativeLibDir : transitiveDependencies.nativeLibAssetsDirectories) {
         copyNativeLibrary(nativeLibDir, nativeLibAssetsDir, commands);
       }
     }

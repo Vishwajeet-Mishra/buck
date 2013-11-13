@@ -638,7 +638,7 @@ public class AndroidBinaryRuleTest {
 
     ImmutableList.Builder<Step> commands = ImmutableList.builder();
     AndroidBinaryRule buildRule = ruleResolver.buildAndAddToIndex(builder);
-    buildRule.copyNativeLibrary(sourceDir, destinationDir, commands);
+    buildRule.copyNativeLibrary(Paths.get(sourceDir), Paths.get(destinationDir), commands);
 
     ImmutableList<Step> steps = commands.build();
 
