@@ -55,7 +55,7 @@ public class QuickstartIntegrationTest {
     quickstartWorkspace.setUp();
 
     // looks at local.properties, ANDROID_SDK, and ANDROID_HOME
-    File androidSdk = AbstractCommandOptions.findAndroidSdkDir().orNull();
+    File androidSdk = AbstractCommandOptions.findAndroidSdkDir().get();
 
     ProcessResult result = quickstartWorkspace.runBuckCommand("quickstart",
         "--dest-dir",
