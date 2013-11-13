@@ -79,7 +79,7 @@ public class JavaTestRule extends DefaultJavaLibraryRule implements TestRule {
   private final ImmutableSet<String> contacts;
 
   protected JavaTestRule(BuildRuleParams buildRuleParams,
-      Set<String> srcs,
+      Set<Path> srcs,
       Set<SourcePath> resources,
       Set<String> labels,
       Set<String> contacts,
@@ -430,7 +430,7 @@ public class JavaTestRule extends DefaultJavaLibraryRule implements TestRule {
     }
 
     @Override
-    public Builder addSrc(String src) {
+    public Builder addSrc(Path src) {
       super.addSrc(src);
       return this;
     }

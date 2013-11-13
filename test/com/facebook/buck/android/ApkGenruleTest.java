@@ -71,11 +71,11 @@ import java.util.Map;
  */
 public class ApkGenruleTest {
 
-  private static final Function<String, Path> relativeToAbsolutePathFunction =
-      new Function<String, Path>() {
+  private static final Function<Path, Path> relativeToAbsolutePathFunction =
+      new Function<Path, Path>() {
         @Override
-        public Path apply(String path) {
-          return Paths.get("/opt/local/fbandroid", path);
+        public Path apply(Path path) {
+          return Paths.get("/opt/local/fbandroid").resolve(path);
         }
       };
 
@@ -86,7 +86,7 @@ public class ApkGenruleTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libAndroidTarget)
-        .addSrc("java/com/facebook/util/Facebook.java"));
+        .addSrc(Paths.get("java/com/facebook/util/Facebook.java")));
 
     BuildTarget keystoreTarget = BuildTargetFactory.newInstance("//keystore:debug");
     ruleResolver.buildAndAddToIndex(

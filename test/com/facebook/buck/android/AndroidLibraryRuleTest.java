@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableList;
 
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 public class AndroidLibraryRuleTest {
 
   @Test
@@ -57,7 +59,7 @@ public class AndroidLibraryRuleTest {
     return (AndroidLibraryRule)params.buildAndAddToIndex(
         AndroidLibraryRule.newAndroidLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//java/src/com/foo:foo"))
-        .addSrc("java/src/com/foo/Foo.java")
+        .addSrc(Paths.get("java/src/com/foo/Foo.java"))
         .setManifestFile((Optional.of("java/src/com/foo/AndroidManifest.xml"))));
   }
 
@@ -65,7 +67,7 @@ public class AndroidLibraryRuleTest {
     return (AndroidLibraryRule)params.buildAndAddToIndex(
         AndroidLibraryRule.newAndroidLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//java/src/com/bar:bar"))
-        .addSrc("java/src/com/bar/Bar.java")
+        .addSrc(Paths.get("java/src/com/bar/Bar.java"))
         .setManifestFile((Optional.<String>absent())));
   }
 }

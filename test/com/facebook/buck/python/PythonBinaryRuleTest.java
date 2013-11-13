@@ -38,7 +38,7 @@ public class PythonBinaryRuleTest {
     BuildTarget orphanPyLibraryTarget = BuildTargetFactory.newInstance("//:orphan_python_library");
     ruleResolver.buildAndAddToIndex(
         PythonLibrary.newPythonLibraryBuilder(new FakeAbstractBuildRuleBuilderParams())
-            .addSrc("java/src/com/javalib/orphan/sadpanda.py")
+            .addSrc(Paths.get("java/src/com/javalib/orphan/sadpanda.py"))
             .setBuildTarget(orphanPyLibraryTarget)
             .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
@@ -46,14 +46,14 @@ public class PythonBinaryRuleTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
             .setBuildTarget(javaLibraryTarget)
-            .addSrc("java/src/com/javalib/Bar.java")
+            .addSrc(Paths.get("java/src/com/javalib/Bar.java"))
             .addDep(orphanPyLibraryTarget)
             .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     BuildTarget pyLibraryTarget = BuildTargetFactory.newInstance("//:py_library");
     ruleResolver.buildAndAddToIndex(
         PythonLibrary.newPythonLibraryBuilder(new FakeAbstractBuildRuleBuilderParams())
-            .addSrc("python/tastypy.py")
+            .addSrc(Paths.get("python/tastypy.py"))
             .setBuildTarget(pyLibraryTarget)
             .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 

@@ -41,14 +41,17 @@ import com.facebook.buck.util.BuckConstant;
 import com.facebook.buck.util.MorePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 import java.io.IOException;
@@ -111,13 +114,13 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
   /**
    * The order in which elements are specified in the {@code srcs} attribute of a genrule matters.
    */
-  protected final ImmutableList<String> srcs;
+  protected final ImmutableList<Path> srcs;
 
   protected final Optional<String> cmd;
   protected final Optional<String> bash;
   protected final Optional<String> cmdExe;
 
-  protected final Map<String, Path> srcsToAbsolutePaths;
+  protected final Map<Path, Path> srcsToAbsolutePaths;
 
   protected final Path pathToOutDirectory;
   protected final Path pathToOutFile;
@@ -125,15 +128,15 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
   private final Path absolutePathToTmpDirectory;
   private final Path pathToSrcDirectory;
   private final Path absolutePathToSrcDirectory;
-  protected final Function<String, Path> relativeToAbsolutePathFunction;
+  protected final Function<Path, Path> relativeToAbsolutePathFunction;
 
   protected Genrule(BuildRuleParams buildRuleParams,
-      List<String> srcs,
+      List<Path> srcs,
       Optional<String> cmd,
       Optional<String> bash,
       Optional<String> cmdExe,
       String out,
-      Function<String, Path> relativeToAbsolutePathFunction) {
+      Function<Path, Path> relativeToAbsolutePathFunction) {
     super(buildRuleParams);
     this.srcs = ImmutableList.copyOf(srcs);
     this.cmd = Preconditions.checkNotNull(cmd);
@@ -152,16 +155,14 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
         buildRuleParams.getBuildTarget().getBasePathWithSlash(),
         String.format("%s__tmp", getBuildTarget().getShortName()));
     // TODO(simons): pathToTmpDirectory.toAbsolutePath() should be enough
-    this.absolutePathToTmpDirectory = relativeToAbsolutePathFunction.apply(
-        pathToTmpDirectory.toString());
+    this.absolutePathToTmpDirectory = relativeToAbsolutePathFunction.apply(pathToTmpDirectory);
 
     this.pathToSrcDirectory = Paths.get(
         BuckConstant.GEN_DIR,
         buildRuleParams.getBuildTarget().getBasePathWithSlash(),
         String.format("%s__srcs", getBuildTarget().getShortName()));
     // TODO(simons): And here.
-    this.absolutePathToSrcDirectory = relativeToAbsolutePathFunction.apply(
-        pathToSrcDirectory.toString());
+    this.absolutePathToSrcDirectory = relativeToAbsolutePathFunction.apply(pathToSrcDirectory);
 
     this.relativeToAbsolutePathFunction = relativeToAbsolutePathFunction;
   }
@@ -173,12 +174,14 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
   /** @return the absolute path to the output file */
   public String getAbsoluteOutputFilePath() {
-    return relativeToAbsolutePathFunction.apply(getPathToOutputFile()).toString();
+    return relativeToAbsolutePathFunction.apply(MorePaths.newPathInstance(getPathToOutputFile())).toString();
   }
 
   @Override
   public ImmutableSortedSet<String> getInputsToCompareToOutput() {
-    return ImmutableSortedSet.copyOf(srcs);
+    return FluentIterable.from(srcs)
+        .transform(Functions.toStringFunction())
+        .toSortedSet(Ordering.natural());
   }
 
   @Override
@@ -189,7 +192,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
   @Override
   public RuleKey.Builder appendToRuleKey(RuleKey.Builder builder) throws IOException {
     return super.appendToRuleKey(builder)
-        .set("srcs", srcs)
+        .setInputs("srcs", srcs.iterator())
         .set("cmd", cmd)
         .set("bash", bash)
         .set("cmd_exe", cmdExe);
@@ -206,8 +209,8 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
       transformNames(processedBuildRules, depFiles, dep);
     }
 
-    environmentVariablesBuilder.put(
-        "GEN_DIR", relativeToAbsolutePathFunction.apply(BuckConstant.GEN_DIR).toString());
+    environmentVariablesBuilder.put("GEN_DIR", relativeToAbsolutePathFunction.apply(
+        MorePaths.newPathInstance(BuckConstant.GEN_DIR)).toString());
     environmentVariablesBuilder.put("DEPS", Joiner.on(' ').skipNulls().join(depFiles));
     environmentVariablesBuilder.put("SRCDIR", absolutePathToSrcDirectory.toString());
     environmentVariablesBuilder.put("TMP", absolutePathToTmpDirectory.toString());
@@ -230,7 +233,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
     Buildable buildable = Preconditions.checkNotNull(rule.getBuildable());
 
-    String output = buildable.getPathToOutputFile();
+    Path output = MorePaths.newPathInstance(buildable.getPathToOutputFile());
     if (output != null) {
       // TODO(mbolin): This is a giant hack and we should do away with $DEPS altogether.
       // There can be a lot of paths here and the filesystem location can be arbitrarily long.
@@ -240,9 +243,10 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
       // from the shell but anyone reading the environment variable will get the
       // full paths due to variable interpolation
       if (output.startsWith(BuckConstant.GEN_DIR)) {
-        String relativePath = output.substring(BuckConstant.GEN_DIR.length());
-        if (relativePath.charAt(0) != '/') {
-          relativePath = "/" + relativePath;
+        Path relativePath = MorePaths.getRelativePath(output, Paths.get(BuckConstant.GEN_DIR));
+        if (!relativePath.isAbsolute()) {
+          // TODO(simons): relativePath.toAbsolute()?
+          relativePath = MorePaths.newPathInstance("/" + relativePath);
         }
         appendTo.add("$GEN_DIR" + relativePath);
       } else {
@@ -296,12 +300,12 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
   @VisibleForTesting
   void addSymlinkCommands(ImmutableList.Builder<Step> commands) {
-    String basePath = getBuildTarget().getBasePathWithSlash();
-    int basePathLength = basePath.length();
+    Path basePath = MorePaths.newPathInstance(getBuildTarget().getBasePathWithSlash());
+    boolean zeroLengthBase = basePath.toString().length() == 0;
 
     // Symlink all sources into the temp directory so that they can be used in the genrule.
-    for (Map.Entry<String, Path> entry : srcsToAbsolutePaths.entrySet()) {
-      String localPath = entry.getKey();
+    for (Map.Entry<Path, Path> entry : srcsToAbsolutePaths.entrySet()) {
+      Path localPath = entry.getKey();
 
       Path canonicalPath;
       canonicalPath = MorePaths.absolutify(entry.getValue());
@@ -310,14 +314,14 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
       // to paths relative to the project root. We want the path relative to the build target, so
       // strip the base path.
       if (entry.getValue().equals(canonicalPath)) {
-        if (localPath.startsWith(basePath)) {
-          localPath = localPath.substring(basePathLength);
+        if (zeroLengthBase || localPath.startsWith(basePath)) {
+          localPath = MorePaths.getRelativePath(localPath, basePath);
         } else {
-          localPath = canonicalPath.getFileName().toString();
+          localPath = canonicalPath.getFileName();
         }
       }
 
-      String destination = pathToSrcDirectory + "/" + localPath;
+      Path destination = pathToSrcDirectory.resolve(localPath);
       commands.add(new MkdirAndSymlinkFileStep(entry.getKey(), destination));
     }
   }
@@ -330,7 +334,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
   public static class Builder extends AbstractBuildRuleBuilder<Genrule>
       implements SrcsAttributeBuilder {
 
-    protected List<String> srcs = Lists.newArrayList();
+    protected List<Path> srcs = Lists.newArrayList();
 
     protected Optional<String> cmd;
     protected Optional<String> bash;
@@ -338,7 +342,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
     protected String out;
 
-    private Function<String, Path> relativeToAbsolutePathFunctionForTesting = null;
+    private Function<Path, Path> relativeToAbsolutePathFunctionForTesting = null;
 
     protected Builder(AbstractBuildRuleBuilderParams params) {
       super(params);
@@ -359,14 +363,14 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
           getRelativeToAbsolutePathFunction(buildRuleParams));
     }
 
-    protected Function<String, Path> getRelativeToAbsolutePathFunction(BuildRuleParams params) {
+    protected Function<Path, Path> getRelativeToAbsolutePathFunction(BuildRuleParams params) {
       return (relativeToAbsolutePathFunctionForTesting == null)
-          ? params.getPathRelativizer()
+          ? params.getPathRelativiser()
           : relativeToAbsolutePathFunctionForTesting;
     }
 
     @Override
-    public Builder addSrc(String src) {
+    public Builder addSrc(Path src) {
       srcs.add(src);
       return this;
     }
@@ -405,7 +409,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
     @VisibleForTesting
     public Builder setRelativeToAbsolutePathFunctionForTesting(
-        Function<String, Path> relativeToAbsolutePathFunction) {
+        Function<Path, Path> relativeToAbsolutePathFunction) {
       this.relativeToAbsolutePathFunctionForTesting = relativeToAbsolutePathFunction;
       return this;
     }

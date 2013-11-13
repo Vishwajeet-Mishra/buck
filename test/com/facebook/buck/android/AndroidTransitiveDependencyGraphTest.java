@@ -34,6 +34,8 @@ import com.google.common.collect.ImmutableSet;
 
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 public class AndroidTransitiveDependencyGraphTest {
 
   /**
@@ -62,7 +64,7 @@ public class AndroidTransitiveDependencyGraphTest {
     BuildRule ndkLibrary = ruleResolver.buildAndAddToIndex(
         NdkLibrary.newNdkLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
             .setBuildTarget(BuildTargetFactory.newInstance("//java/com/facebook/native_library:library"))
-            .addSrc("Android.mk")
+            .addSrc(Paths.get("Android.mk"))
             .setIsAsset(false)
             .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
@@ -160,7 +162,7 @@ public class AndroidTransitiveDependencyGraphTest {
     ruleResolver.buildAndAddToIndex(
         AndroidLibraryRule.newAndroidLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(androidLibraryKeystoreTarget)
-        .addSrc("java/com/facebook/keystore/Base.java")
+        .addSrc(Paths.get("java/com/facebook/keystore/Base.java"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     BuildTarget keystoreTarget = new BuildTarget("//keystore", "debug");
@@ -176,7 +178,7 @@ public class AndroidTransitiveDependencyGraphTest {
     ruleResolver.buildAndAddToIndex(
         AndroidLibraryRule.newAndroidLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(androidLibraryTarget)
-        .addSrc("java/com/facebook/base/Base.java")
+        .addSrc(Paths.get("java/com/facebook/base/Base.java"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     AndroidBinaryRule androidBinaryRule = ruleResolver.buildAndAddToIndex(

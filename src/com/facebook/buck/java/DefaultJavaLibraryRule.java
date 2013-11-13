@@ -55,6 +55,7 @@ import com.facebook.buck.util.BuckConstant;
 import com.facebook.buck.util.MorePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -181,13 +182,13 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
   protected ImmutableList<HasAndroidResourceDeps> androidResourceDeps;
 
   protected DefaultJavaLibraryRule(BuildRuleParams buildRuleParams,
-                                   Set<String> srcs,
+                                   Set<Path> srcs,
                                    Set<? extends SourcePath> resources,
                                    Optional<String> proguardConfig,
                                    boolean exportDeps,
                                    JavacOptions javacOptions) {
     super(buildRuleParams);
-    this.srcs = ImmutableSortedSet.copyOf(srcs);
+    this.srcs = ImmutableSortedSet.copyOf(Iterables.transform(srcs, Functions.toStringFunction()));
     this.resources = ImmutableSortedSet.copyOf(resources);
     this.proguardConfig = Preconditions.checkNotNull(proguardConfig);
     this.exportDeps = exportDeps;
@@ -802,7 +803,7 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
   public static class Builder extends AbstractBuildRuleBuilder<DefaultJavaLibraryRule> implements
       SrcsAttributeBuilder, ResourcesAttributeBuilder {
 
-    protected Set<String> srcs = Sets.newHashSet();
+    protected Set<Path> srcs = Sets.newHashSet();
     protected Set<SourcePath> resources = Sets.newHashSet();
     protected final AnnotationProcessingParams.Builder annotationProcessingBuilder =
         new AnnotationProcessingParams.Builder();
@@ -848,7 +849,7 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
     }
 
     @Override
-    public Builder addSrc(String src) {
+    public Builder addSrc(Path src) {
       srcs.add(src);
       return this;
     }

@@ -61,7 +61,7 @@ public class PythonLibraryTest {
   public void testGetters() {
     BuildRuleParams buildRuleParams = new FakeBuildRuleParams(
         new BuildTarget("//scripts/python", "foo"));
-    ImmutableSortedSet<String> srcs = ImmutableSortedSet.of("");
+    ImmutableSortedSet<Path> srcs = ImmutableSortedSet.of(Paths.get(""));
     PythonLibrary pythonLibrary = new PythonLibrary(
         buildRuleParams,
         srcs);
@@ -77,9 +77,9 @@ public class PythonLibraryTest {
     BuildTarget pyLibraryTarget = BuildTargetFactory.newInstance("//:py_library");
     ruleResolver.buildAndAddToIndex(
         PythonLibrary.newPythonLibraryBuilder(new FakeAbstractBuildRuleBuilderParams())
-            .addSrc("baz.py")
-            .addSrc("foo/__init__.py")
-            .addSrc("foo/bar.py")
+            .addSrc(Paths.get("baz.py"))
+            .addSrc(Paths.get("foo/__init__.py"))
+            .addSrc(Paths.get("foo/bar.py"))
             .setBuildTarget(pyLibraryTarget));
     FakeBuildableContext buildableContext = new FakeBuildableContext();
     BuildContext buildContext = createMock(BuildContext.class);

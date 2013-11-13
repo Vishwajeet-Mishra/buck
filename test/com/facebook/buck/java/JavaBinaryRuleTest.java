@@ -27,6 +27,8 @@ import com.facebook.buck.model.BuildTargetFactory;
 import com.facebook.buck.model.BuildTargetPattern;
 import com.facebook.buck.rules.BuildRuleResolver;
 import com.facebook.buck.rules.FakeAbstractBuildRuleBuilderParams;
+import com.facebook.buck.util.MoreFiles;
+import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.google.common.base.Function;
 
@@ -63,7 +65,7 @@ public class JavaBinaryRuleTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//java/com/facebook/base:base"))
-        .addSrc("java/com/facebook/base/Base.java")
+        .addSrc(Paths.get("java/com/facebook/base/Base.java"))
         .addDep(BuildTargetFactory.newInstance("//third_party/guava:guava")));
 
     // java_binary //java/com/facebook/base:Main
@@ -74,23 +76,24 @@ public class JavaBinaryRuleTest {
         .setMainClass("com.facebook.base.Main"));
 
     // Strip the trailing "." from the absolute path to the current directory.
-    final String basePath = new File(".").getAbsolutePath().replaceFirst("\\.$", "");
+    final Path basePath = MorePaths.absolutify(new File(".").toPath());
 
     // Each classpath entry is specified via its absolute path so that the executable command can be
     // run from a /tmp directory, if necessary.
-    String expectedClasspath =
-        basePath + javaBinaryRule.getPathToOutputFile();
+    String expectedClasspath = basePath.resolve(javaBinaryRule.getPathToOutputFile()).toString();
 
     String expectedCommand = String.format("java -jar %s",
         expectedClasspath);
     ProjectFilesystem projectFilesystem = createMock(ProjectFilesystem.class);
-    Function<String, Path> pathRelativizer = new Function<String, Path>() {
+    Function<Path, Path> pathRelativizer = new Function<Path, Path>() {
       @Override
-      public Path apply(String path) {
-        return Paths.get(basePath, path);
+      public Path apply(Path path) {
+        System.out.println("basePath = " + basePath);
+        System.out.println("path = " + path);
+        return basePath.resolve(path);
       }
     };
-    expect(projectFilesystem.getPathRelativizer()).andReturn(pathRelativizer);
+    expect(projectFilesystem.getPathRelativiser()).andReturn(pathRelativizer);
     replay(projectFilesystem);
     assertEquals(expectedCommand, javaBinaryRule.getExecutableCommand(projectFilesystem));
     verify(projectFilesystem);

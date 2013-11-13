@@ -60,6 +60,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -89,7 +90,7 @@ public class ProjectTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//buck-out/android/com/facebook:R"))
-        .addSrc("buck-out/android/com/facebook/R.java")
+        .addSrc(Paths.get("buck-out/android/com/facebook/R.java"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     // prebuilt_jar //third_party/guava:guava
@@ -120,7 +121,7 @@ public class ProjectTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(grandchild)
-        .addSrc("Grandchild.java")
+        .addSrc(Paths.get("Grandchild.java"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     // java_library //java/src/com/facebook/child:child
@@ -128,7 +129,7 @@ public class ProjectTest {
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance(
             "//java/src/com/facebook/child:child"))
-        .addSrc("Child.java")
+        .addSrc(Paths.get("Child.java"))
         .addDep(grandchild)
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
@@ -137,7 +138,7 @@ public class ProjectTest {
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance(
             "//java/src/com/facebook/exportlib:exportlib"))
-        .addSrc("ExportLib.java")
+        .addSrc(Paths.get("ExportLib.java"))
         .addDep(BuildTargetFactory.newInstance("//third_party/guava:guava"))
         .setExportDeps(true)
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
@@ -146,7 +147,7 @@ public class ProjectTest {
     ruleResolver.buildAndAddToIndex(
         AndroidLibraryRule.newAndroidLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//java/src/com/facebook/base:base"))
-        .addSrc("Base.java")
+        .addSrc(Paths.get("Base.java"))
         .addDep(BuildTargetFactory.newInstance("//buck-out/android/com/facebook:R"))
         .addDep(BuildTargetFactory.newInstance("//java/src/com/facebook/exportlib:exportlib"))
         .addDep(BuildTargetFactory.newInstance("//java/src/com/facebook/child:child"))
@@ -768,7 +769,7 @@ public class ProjectTest {
     BuildRule ndkLibrary = ruleResolver.buildAndAddToIndex(
         NdkLibrary.newNdkLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(fooJni)
-        .addSrc("Android.mk")
+        .addSrc(Paths.get("Android.mk"))
         .addVisibilityPattern(new SingletonBuildTargetPattern("//third_party/java/foo:foo")));
 
     ProjectConfigRule ndkProjectConfig = ruleResolver.buildAndAddToIndex(
@@ -800,20 +801,20 @@ public class ProjectTest {
     DefaultJavaLibraryRule ex1 = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//example/parent:ex1"))
-        .addSrc("DoesNotExist.java")
+        .addSrc(Paths.get("DoesNotExist.java"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     DefaultJavaLibraryRule ex2 = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//example/child:ex2"))
-        .addSrc("AlsoDoesNotExist.java")
+        .addSrc(Paths.get("AlsoDoesNotExist.java"))
         .addDep(ex1.getBuildTarget())
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     DefaultJavaLibraryRule tests = ruleResolver.buildAndAddToIndex(
         JavaTestRule.newJavaTestRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//example/child:tests"))
-        .addSrc("SomeTestFile.java")
+        .addSrc(Paths.get("SomeTestFile.java"))
         .addDep(ex2.getBuildTarget())
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 

@@ -137,7 +137,7 @@ public class DefaultJavaLibraryRuleTest {
     BuildTarget buildTarget = new BuildTarget("//android/java", "resources");
     DefaultJavaLibraryRule javaRule = new DefaultJavaLibraryRule(
         new FakeBuildRuleParams(buildTarget),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         ImmutableSet.of(
             new FileSourcePath("android/java/src/com/facebook/base/data.json"),
             new FileSourcePath("android/java/src/com/facebook/common/util/data.json")
@@ -170,7 +170,7 @@ public class DefaultJavaLibraryRuleTest {
     BuildTarget buildTarget = new BuildTarget("//android/java/src", "resources");
     DefaultJavaLibraryRule javaRule = new DefaultJavaLibraryRule(
         new FakeBuildRuleParams(buildTarget),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         ImmutableSet.<SourcePath>of(
             new FileSourcePath("android/java/src/com/facebook/base/data.json"),
             new FileSourcePath("android/java/src/com/facebook/common/util/data.json")
@@ -204,7 +204,7 @@ public class DefaultJavaLibraryRuleTest {
     BuildTarget buildTarget = new BuildTarget("//android/java/src/com/facebook", "resources");
     DefaultJavaLibraryRule javaRule = new DefaultJavaLibraryRule(
         new FakeBuildRuleParams(buildTarget),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         ImmutableSet.of(
             new FileSourcePath("android/java/src/com/facebook/base/data.json"),
             new FileSourcePath("android/java/src/com/facebook/common/util/data.json")
@@ -247,7 +247,7 @@ public class DefaultJavaLibraryRuleTest {
         AndroidLibraryRule.newAndroidLibraryRuleBuilder(
             new DefaultBuildRuleBuilderParams(projectFilesystem, new FakeRuleKeyBuilderFactory()))
         .setBuildTarget(buildTarget)
-        .addSrc(src));
+        .addSrc(Paths.get(src)));
 
     String bootclasspath = "effects.jar:maps.jar:usb.jar:";
     BuildContext context = createBuildContext(javaLibrary, bootclasspath, projectFilesystem);
@@ -397,7 +397,7 @@ public class DefaultJavaLibraryRuleTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(processorTarget)
-        .addSrc("java/processor/processor.java"));
+        .addSrc(Paths.get("java/processor/processor.java")));
 
     BuildTarget libTarget = BuildTargetFactory.newInstance("//java/lib:lib");
     AndroidLibraryRule.Builder builder = AndroidLibraryRule.newAndroidLibraryRuleBuilder(
@@ -421,20 +421,20 @@ public class DefaultJavaLibraryRuleTest {
     JavaLibraryRule libraryOne = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryOneTarget)
-        .addSrc("java/src/com/libone/Bar.java"));
+        .addSrc(Paths.get("java/src/com/libone/Bar.java")));
 
     BuildTarget libraryTwoTarget = BuildTargetFactory.newInstance("//:libtwo");
     JavaLibraryRule libraryTwo = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryTwoTarget)
-        .addSrc("java/src/com/libtwo/Foo.java")
+        .addSrc(Paths.get("java/src/com/libtwo/Foo.java"))
         .addDep(BuildTargetFactory.newInstance("//:libone")));
 
     BuildTarget parentTarget = BuildTargetFactory.newInstance("//:parent");
     JavaLibraryRule parent = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(parentTarget)
-        .addSrc("java/src/com/parent/Meh.java")
+        .addSrc(Paths.get("java/src/com/parent/Meh.java"))
         .addDep(BuildTargetFactory.newInstance("//:libtwo")));
 
     assertEquals(ImmutableSetMultimap.of(
@@ -458,7 +458,7 @@ public class DefaultJavaLibraryRuleTest {
     JavaLibraryRule libraryTwo = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryTwoTarget)
-        .addSrc("java/src/com/libtwo/Foo.java")
+        .addSrc(Paths.get("java/src/com/libtwo/Foo.java"))
         .addDep(BuildTargetFactory.newInstance("//:libone")));
 
     DependencyGraph graph = RuleMap.createGraphFromBuildRules(ruleResolver);
@@ -550,13 +550,13 @@ public class DefaultJavaLibraryRuleTest {
     JavaLibraryRule libraryOne = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryOneTarget)
-        .addSrc("java/src/com/libone/Bar.java"));
+        .addSrc(Paths.get("java/src/com/libone/Bar.java")));
 
     BuildTarget libraryTwoTarget = BuildTargetFactory.newInstance("//:libtwo");
     JavaLibraryRule libraryTwo = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryTwoTarget)
-        .addSrc("java/src/com/libtwo/Foo.java")
+        .addSrc(Paths.get("java/src/com/libtwo/Foo.java"))
         .addDep(BuildTargetFactory.newInstance("//:libone"))
         .setExportDeps(true));
 
@@ -564,7 +564,7 @@ public class DefaultJavaLibraryRuleTest {
     JavaLibraryRule parent = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(parentTarget)
-        .addSrc("java/src/com/parent/Meh.java")
+        .addSrc(Paths.get("java/src/com/parent/Meh.java"))
         .addDep(BuildTargetFactory.newInstance("//:libtwo")));
 
     assertEquals(
@@ -625,7 +625,7 @@ public class DefaultJavaLibraryRuleTest {
         tinyLibAbiKeyHash,
         BuildTargetFactory.newInstance("//:tinylib"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(),
         /* exportDeps */ false);
 
@@ -635,13 +635,13 @@ public class DefaultJavaLibraryRuleTest {
     DefaultJavaLibraryRule commonWithExport = createDefaultJavaLibaryRuleWithAbiKey(
         commonWithExportAbiKeyHash,
         BuildTargetFactory.newInstance("//:common_with_export"),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         /* deps */ ImmutableSet.<BuildRule>of(tinyLibrary),
         /* exportDeps */ true);
     DefaultJavaLibraryRule commonNoExport = createDefaultJavaLibaryRuleWithAbiKey(
         /* abiHash */ null,
         BuildTargetFactory.newInstance("//:common_no_export"),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         /* deps */ ImmutableSet.<BuildRule>of(tinyLibrary),
         /* exportDeps */ false);
 
@@ -706,7 +706,7 @@ public class DefaultJavaLibraryRuleTest {
         commonLibAbiKeyHash,
         BuildTargetFactory.newInstance("//:commonlib"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(),
         /* exportDeps */ false);
 
@@ -716,14 +716,14 @@ public class DefaultJavaLibraryRuleTest {
     DefaultJavaLibraryRule libWithExport = createDefaultJavaLibaryRuleWithAbiKey(
         libWithExportAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_with_export"),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         /* deps */ ImmutableSet.<BuildRule>of(commonLibrary),
         /* exportDeps */ true);
     String libNoExportAbiKeyHash = Strings.repeat("c", 40);
     DefaultJavaLibraryRule libNoExport = createDefaultJavaLibaryRuleWithAbiKey(
         /* abiHash */ libNoExportAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_no_export"),
-        /* srcs */ ImmutableSet.<String>of(),
+        /* srcs */ ImmutableSet.<Path>of(),
         /* deps */ ImmutableSet.<BuildRule>of(commonLibrary),
         /* exportDeps */ false);
 
@@ -760,28 +760,28 @@ public class DefaultJavaLibraryRuleTest {
         libDAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_d"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(),
         /* exportDeps */ true);
     JavaLibraryRule libC = createDefaultJavaLibaryRuleWithAbiKey(
         libCAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_c"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(libD),
         /* exportDeps */ true);
     JavaLibraryRule libB = createDefaultJavaLibaryRuleWithAbiKey(
         libBAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_b"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(libC),
         /* exportDeps */ true);
     JavaLibraryRule libA = createDefaultJavaLibaryRuleWithAbiKey(
         libAAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_a"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(libB),
         /* exportDeps */ true);
 
@@ -829,28 +829,28 @@ public class DefaultJavaLibraryRuleTest {
         libDAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_d2"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(),
         /* exportDeps */ false);
     libC = createDefaultJavaLibaryRuleWithAbiKey(
         libCAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_c2"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(libD),
         /* exportDeps */ false);
     libB = createDefaultJavaLibaryRuleWithAbiKey(
         libBAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_b2"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(libC),
         /* exportDeps */ true);
     libA = createDefaultJavaLibaryRuleWithAbiKey(
         libAAbiKeyHash,
         BuildTargetFactory.newInstance("//:lib_a2"),
         // Must have a source file or else its ABI will be AbiWriterProtocol.EMPTY_ABI_KEY.
-        /* srcs */ ImmutableSet.of("foo/Bar.java"),
+        /* srcs */ ImmutableSet.of(Paths.get("foo/Bar.java")),
         /* deps */ ImmutableSet.<BuildRule>of(libB),
         /* exportDeps */ true);
 
@@ -891,7 +891,7 @@ public class DefaultJavaLibraryRuleTest {
   private static DefaultJavaLibraryRule createDefaultJavaLibaryRuleWithAbiKey(
       @Nullable final String partialAbiHash,
       BuildTarget buildTarget,
-      ImmutableSet<String> srcs,
+      ImmutableSet<Path> srcs,
       ImmutableSet<BuildRule> deps,
       boolean exportDeps) {
     return new DefaultJavaLibraryRule(
@@ -921,7 +921,7 @@ public class DefaultJavaLibraryRuleTest {
     DefaultJavaLibraryRule libraryOne = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryOneTarget)
-        .addSrc("java/src/com/libone/bar.java"));
+        .addSrc(Paths.get("java/src/com/libone/bar.java")));
 
     BuildContext context = createSuggestContext(ruleResolver,
         BuildDependencies.FIRST_ORDER_ONLY);
@@ -947,21 +947,21 @@ public class DefaultJavaLibraryRuleTest {
     DefaultJavaLibraryRule libraryOne = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryOneTarget)
-        .addSrc("java/src/com/libone/Bar.java")
+        .addSrc(Paths.get("java/src/com/libone/Bar.java"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
     BuildTarget libraryTwoTarget = BuildTargetFactory.newInstance("//:libtwo");
     DefaultJavaLibraryRule libraryTwo = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(libraryTwoTarget)
-        .addSrc("java/src/com/libtwo/Foo.java")
+        .addSrc(Paths.get("java/src/com/libtwo/Foo.java"))
         .addDep(BuildTargetFactory.newInstance("//:libone")));
 
     BuildTarget parentTarget = BuildTargetFactory.newInstance("//:parent");
     DefaultJavaLibraryRule parent = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(parentTarget)
-        .addSrc("java/src/com/parent/Meh.java")
+        .addSrc(Paths.get("java/src/com/parent/Meh.java"))
         .addDep(BuildTargetFactory.newInstance("//:libtwo"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL));
 
@@ -969,7 +969,7 @@ public class DefaultJavaLibraryRuleTest {
     DefaultJavaLibraryRule grandparent = ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(grandparentTarget)
-        .addSrc("java/src/com/parent/OldManRiver.java")
+        .addSrc(Paths.get("java/src/com/parent/OldManRiver.java"))
         .addDep(BuildTargetFactory.newInstance("//:parent")));
 
     BuildContext context = createSuggestContext(ruleResolver,
@@ -1101,7 +1101,7 @@ public class DefaultJavaLibraryRuleTest {
       public BuildRule createRule(BuildTarget target) {
         return new DefaultJavaLibraryRule(
             new FakeBuildRuleParams(target),
-            ImmutableSet.<String>of("MyClass.java"),
+            ImmutableSet.<Path>of(Paths.get("MyClass.java")),
             ImmutableSet.<SourcePath>of(),
             Optional.of("MyProguardConfig"),
             /* exportDeps */ false,
@@ -1189,7 +1189,7 @@ public class DefaultJavaLibraryRuleTest {
               /* visibilityPatterns */ ImmutableSet.<BuildTargetPattern>of(),
               projectFilesystem.getPathRelativizer(),
               new FakeRuleKeyBuilderFactory()),
-          ImmutableSet.of(src),
+          ImmutableSet.of(Paths.get(src)),
           /* resources */ ImmutableSet.<SourcePath>of(),
           /* proguardConfig */ Optional.<String>absent(),
           options.build(),

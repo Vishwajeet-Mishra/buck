@@ -22,6 +22,7 @@ import com.facebook.buck.model.BuildTargetPattern;
 import com.facebook.buck.parser.NoSuchBuildTargetException;
 import com.facebook.buck.parser.ParseContext;
 import com.facebook.buck.util.HumanReadableException;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -64,7 +65,7 @@ public abstract class AbstractBuildRuleFactory<T extends AbstractBuildRuleBuilde
     if (builder instanceof SrcsAttributeBuilder) {
       for (String src : params.getOptionalListAttribute("srcs")) {
         String relativePath = params.resolveFilePathRelativeToBuildFileDirectory(src);
-        ((SrcsAttributeBuilder)builder).addSrc(relativePath);
+        ((SrcsAttributeBuilder)builder).addSrc(MorePaths.newPathInstance(relativePath));
       }
     }
 

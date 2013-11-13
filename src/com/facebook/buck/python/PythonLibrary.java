@@ -34,9 +34,11 @@ import com.facebook.buck.step.fs.MakeCleanDirectoryStep;
 import com.facebook.buck.step.fs.MkdirStep;
 import com.facebook.buck.step.fs.SymlinkFileStep;
 import com.facebook.buck.util.BuckConstant;
+import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -50,11 +52,11 @@ public class PythonLibrary extends AbstractBuildable {
   private final static BuildableProperties OUTPUT_TYPE = new BuildableProperties(LIBRARY);
   private final BuildTarget buildTarget;
   // TODO(simons): Convert to using Paths
-  private final ImmutableSortedSet<String> srcs;
+  private final ImmutableSortedSet<Path> srcs;
   private final Path pythonPathDirectory;
 
   protected PythonLibrary(BuildRuleParams buildRuleParams,
-                          ImmutableSortedSet<String> srcs) {
+                          ImmutableSortedSet<Path> srcs) {
     Preconditions.checkArgument(!srcs.isEmpty(),
         "Must specify srcs for %s.",
         buildRuleParams.getBuildTarget());
@@ -73,7 +75,7 @@ public class PythonLibrary extends AbstractBuildable {
 
   @Override
   public RuleKey.Builder appendDetailsToRuleKey(RuleKey.Builder builder) throws IOException {
-    return builder.set("srcs", srcs);
+    return builder.setInputs("srcs", srcs.iterator());
   }
 
   private Path getPathToPythonPathDirectory() {
@@ -87,13 +89,13 @@ public class PythonLibrary extends AbstractBuildable {
     return "__pylib_" + buildTarget.getShortName();
   }
 
-  public ImmutableSortedSet<String> getPythonSrcs() {
+  public ImmutableSortedSet<Path> getPythonSrcs() {
     return srcs;
   }
 
   @Override
   public Iterable<String> getInputsToCompareToOutput() {
-    return srcs;
+    return Iterables.transform(srcs, Functions.toStringFunction());
   }
 
   public Path getPythonPathDirectory() {
@@ -113,17 +115,16 @@ public class PythonLibrary extends AbstractBuildable {
     ImmutableSortedSet.Builder<Path> directories = ImmutableSortedSet.naturalOrder();
     ImmutableList.Builder<Step> symlinkSteps = ImmutableList.builder();
 
-    for (String src : srcs) {
-      Path srcPath = Paths.get(src);
-      Path targetPath = pythonPathDirectory.resolve(srcPath);
+    for (Path src : srcs) {
+      Path targetPath = pythonPathDirectory.resolve(src);
 
       directories.add(targetPath.getParent());
       symlinkSteps.add(
-          new SymlinkFileStep(srcPath.toString(),
+          new SymlinkFileStep(src.toString(),
               targetPath.toString(),
               /* useAbsolutePaths */ false));
 
-      Path pathToArtifact = Paths.get(getPathUnderGenDirectory()).resolve(srcPath);
+      Path pathToArtifact = Paths.get(getPathUnderGenDirectory()).resolve(src);
       buildableContext.recordArtifact(pathToArtifact);
     }
 
@@ -147,14 +148,14 @@ public class PythonLibrary extends AbstractBuildable {
 
   public static class Builder extends AbstractBuildable.Builder
       implements SrcsAttributeBuilder {
-    protected ImmutableSortedSet.Builder<String> srcs = ImmutableSortedSet.naturalOrder();
+    protected ImmutableSortedSet.Builder<Path> srcs = ImmutableSortedSet.naturalOrder();
 
     private Builder(AbstractBuildRuleBuilderParams params) {
       super(params);
     }
 
     @Override
-    public Builder addSrc(String src) {
+    public Builder addSrc(Path src) {
       srcs.add(src);
       return this;
     }

@@ -129,7 +129,7 @@ public class JavaTestRuleTest {
     return JavaTestRule.newJavaTestRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//example:test"))
         .setVmArgs(vmArgs)
-        .addSrc("ExampleTest.java")
+        .addSrc(Paths.get("ExampleTest.java"))
         .build(new BuildRuleResolver());
   }
 

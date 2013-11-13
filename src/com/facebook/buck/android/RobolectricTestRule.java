@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -65,7 +66,7 @@ public class RobolectricTestRule extends JavaTestRule {
   };
 
   protected RobolectricTestRule(BuildRuleParams buildRuleParams,
-      Set<String> srcs,
+      Set<Path> srcs,
       Set<SourcePath> resources,
       Set<String> labels,
       Set<String> contacts,

@@ -50,6 +50,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
@@ -108,11 +109,11 @@ public class AuditClasspathCommandTest {
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//:test-java-library"))
-        .addSrc("src/com/facebook/TestJavaLibrary.java"));
+        .addSrc(Paths.get("src/com/facebook/TestJavaLibrary.java")));
     ruleResolver.buildAndAddToIndex(
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//:test-android-library"))
-        .addSrc("src/com/facebook/TestAndroidLibrary.java")
+        .addSrc(Paths.get("src/com/facebook/TestAndroidLibrary.java"))
         .addDep(BuildTargetFactory.newInstance("//:test-java-library")));
     BuildTarget keystoreBuildTarget = BuildTargetFactory.newInstance("//:keystore");
     ruleResolver.buildAndAddToIndex(
@@ -133,7 +134,7 @@ public class AuditClasspathCommandTest {
             .setBuildTarget(BuildTargetFactory.newInstance("//:project-tests"))
             .addDep(BuildTargetFactory.newInstance("//:test-java-library"))
             .setSourceUnderTest(ImmutableSet.of(BuildTargetFactory.newInstance("//:test-java-library")))
-            .addSrc("src/com/facebook/test/ProjectTests.java"));
+            .addSrc(Paths.get("src/com/facebook/test/ProjectTests.java")));
     PartialGraph partialGraph2 = createGraphFromBuildRules(ruleResolver, targets);
     auditClasspathCommand.printClasspath(partialGraph2);
 

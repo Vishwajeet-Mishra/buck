@@ -54,6 +54,7 @@ import com.facebook.buck.util.AndroidPlatformTarget;
 import com.facebook.buck.util.Ansi;
 import com.facebook.buck.util.Console;
 import com.facebook.buck.util.HumanReadableException;
+import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.facebook.buck.util.Verbosity;
 import com.facebook.buck.util.environment.Platform;
@@ -80,13 +81,13 @@ import java.util.regex.Pattern;
 
 public class GenruleTest {
 
-  private static final String BASE_PATH = getAbsolutePathFor("/opt/local/fbandroid");
+  private static final Path BASE_PATH = getAbsolutePathFor("/opt/local/fbandroid");
 
-  private static final Function<String, Path> relativeToAbsolutePathFunction =
-      new Function<String, Path>() {
+  private static final Function<Path, Path> relativeToAbsolutePathFunction =
+      new Function<Path, Path>() {
         @Override
-        public Path apply(String path) {
-          return getAbsolutePathInBase(path);
+        public Path apply(Path path) {
+          return getAbsolutePathInBase(path.toString());
         }
       };
 
@@ -95,7 +96,7 @@ public class GenruleTest {
   @Before
   public void newFakeFilesystem() {
     fakeFilesystem = EasyMock.createNiceMock(ProjectFilesystem.class);
-    EasyMock.expect(fakeFilesystem.getPathRelativizer())
+    EasyMock.expect(fakeFilesystem.getPathRelativiser())
         .andReturn(relativeToAbsolutePathFunction)
         .times(0,  1);
     EasyMock.replay(fakeFilesystem);
@@ -367,7 +368,7 @@ public class GenruleTest {
   @Test
   public void replaceLocationOfFullyQualifiedBuildTarget() {
     ProjectFilesystem filesystem = EasyMock.createNiceMock(ProjectFilesystem.class);
-    EasyMock.expect(filesystem.getPathRelativizer()).andStubReturn(relativeToAbsolutePathFunction);
+    EasyMock.expect(filesystem.getPathRelativiser()).andStubReturn(relativeToAbsolutePathFunction);
     EasyMock.replay(filesystem);
 
     BuildRuleResolver ruleResolver = new BuildRuleResolver();
@@ -429,9 +430,9 @@ public class GenruleTest {
         .setRelativeToAbsolutePathFunctionForTesting(relativeToAbsolutePathFunction)
         .setBuildTarget(target)
         .setBash(Optional.of("ignored"))
-        .addSrc("in-dir.txt")
-        .addSrc("foo/bar.html")
-        .addSrc("other/place.txt")
+        .addSrc(Paths.get("in-dir.txt"))
+        .addSrc(Paths.get("foo/bar.html"))
+        .addSrc(Paths.get("other/place.txt"))
         .setOut("example-file"));
 
     ImmutableList.Builder<Step> builder = ImmutableList.builder();
@@ -461,7 +462,7 @@ public class GenruleTest {
         DefaultJavaLibraryRule.newJavaLibraryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
         .setBuildTarget(BuildTargetFactory.newInstance("//java/com/facebook/util:util"))
         .addVisibilityPattern(BuildTargetPattern.MATCH_ALL)
-        .addSrc("java/com/facebook/util/ManifestGenerator.java"));
+        .addSrc(Paths.get("java/com/facebook/util/ManifestGenerator.java")));
 
     JavaBinaryRule javaBinary = ruleResolver.buildAndAddToIndex(
         JavaBinaryRule.newJavaBinaryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
@@ -577,11 +578,11 @@ public class GenruleTest {
     }
   }
 
-  private static String getAbsolutePathFor(String path) {
-    return new File(path).getAbsolutePath();
+  private static Path getAbsolutePathFor(String path) {
+    return MorePaths.absolutify(Paths.get(path));
   }
 
   private static Path getAbsolutePathInBase(String path) {
-    return Paths.get(BASE_PATH, path);
+    return BASE_PATH.resolve(path);
   }
 }

@@ -37,6 +37,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -52,7 +53,7 @@ public class AndroidLibraryRule extends DefaultJavaLibraryRule {
 
   @VisibleForTesting
   public AndroidLibraryRule(BuildRuleParams buildRuleParams,
-      Set<String> srcs,
+      Set<Path> srcs,
       Set<SourcePath> resources,
       Optional<String> proguardConfig,
       JavacOptions javacOptions,
@@ -138,7 +139,7 @@ public class AndroidLibraryRule extends DefaultJavaLibraryRule {
     }
 
     @Override
-    public AndroidLibraryRule.Builder addSrc(String src) {
+    public AndroidLibraryRule.Builder addSrc(Path src) {
       return (AndroidLibraryRule.Builder)super.addSrc(src);
     }
 

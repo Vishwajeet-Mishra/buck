@@ -26,6 +26,8 @@ import com.google.common.collect.ImmutableSortedSet;
 
 import java.nio.file.Path;
 
+import javax.annotation.Nullable;
+
 /**
  * Standard set of parameters that is passed to all build rules.
  */
@@ -64,6 +66,16 @@ public class BuildRuleParams {
 
   public Function<String, Path> getPathRelativizer() {
     return pathRelativizer;
+  }
+
+  public Function<Path, Path> getPathRelativiser() {
+    return new Function<Path, Path>() {
+      @Nullable
+      @Override
+      public Path apply(@Nullable Path input) {
+        return pathRelativizer.apply(input.toString());
+      }
+    };
   }
 
   public RuleKeyBuilderFactory getRuleKeyBuilderFactory() {
