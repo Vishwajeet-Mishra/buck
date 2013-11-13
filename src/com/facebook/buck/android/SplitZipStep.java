@@ -75,14 +75,14 @@ public class SplitZipStep implements Step {
   private final Set<String> inputPathsToSplit;
   private final String secondaryJarMetaPath;
   private final String primaryJarPath;
-  private final String secondaryJarDir;
+  private final Path secondaryJarDir;
   private final String secondaryJarPattern;
   private final Optional<Path> proguardMappingFile;
   private final ImmutableSet<String> primaryDexSubstrings;
   private final Optional<Path> primaryDexClassesFile;
   private final ZipSplitter.DexSplitStrategy dexSplitStrategy;
   private final DexStore dexStore;
-  private final String pathToReportDir;
+  private final Path pathToReportDir;
   private final boolean useLinearAllocSplitDex;
   private final long linearAllocHardLimit;
 
@@ -106,14 +106,14 @@ public class SplitZipStep implements Step {
       Set<String> inputPathsToSplit,
       String secondaryJarMetaPath,
       String primaryJarPath,
-      String secondaryJarDir,
+      Path secondaryJarDir,
       String secondaryJarPattern,
       Optional<Path> proguardMappingFile,
       Set<String> primaryDexSubstrings,
       Optional<Path> primaryDexClassesFile,
       ZipSplitter.DexSplitStrategy dexSplitStrategy,
       DexStore dexStore,
-      String pathToReportDir,
+      Path pathToReportDir,
       boolean useLinearAllocSplitDex,
       long linearAllocHardLimit) {
     this.inputPathsToSplit = ImmutableSet.copyOf(inputPathsToSplit);
@@ -151,7 +151,7 @@ public class SplitZipStep implements Step {
               .transform(context.getProjectFilesystem().getPathRelativizer())
               .toSet(),
           primaryJarFile,
-          new File(secondaryJarDir),
+          secondaryJarDir.toFile(),
           secondaryJarPattern,
           requiredInPrimaryZip,
           dexSplitStrategy,

@@ -18,6 +18,7 @@ package com.facebook.buck.android;
 
 import static com.facebook.buck.util.BuckConstant.BIN_DIR;
 import static com.facebook.buck.util.BuckConstant.GEN_DIR;
+import static com.facebook.buck.util.MorePaths.newPathInstance;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -48,7 +49,6 @@ import com.facebook.buck.testutil.MoreAsserts;
 import com.facebook.buck.testutil.RuleMap;
 import com.facebook.buck.util.DirectoryTraversal;
 import com.facebook.buck.util.DirectoryTraverser;
-import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -126,7 +126,8 @@ public class AndroidBinaryRuleTest {
 
     GenProGuardConfigStep expectedGenProguard =
         new GenProGuardConfigStep(
-            "buck-out/bin/java/src/com/facebook/base/__manifest_apk__/AndroidManifest.xml",
+            newPathInstance(
+                "buck-out/bin/java/src/com/facebook/base/__manifest_apk__/AndroidManifest.xml"),
             ImmutableSet.<String>of(),
             "buck-out/gen/java/src/com/facebook/base/.proguard/apk/proguard.txt");
 
@@ -193,7 +194,7 @@ public class AndroidBinaryRuleTest {
     };
 
     // Invoke createAllAssetsDirectory(), the method under test.
-    Optional<String> allAssetsDirectory = androidBinary.createAllAssetsDirectory(
+    Optional<Path> allAssetsDirectory = androidBinary.createAllAssetsDirectory(
         assetsDirectories, ImmutableMap.<String, File>of(), commands, traverser);
 
     // Verify that no assets/ directory is used.
@@ -247,7 +248,7 @@ public class AndroidBinaryRuleTest {
     DirectoryTraverser traverser = new DirectoryTraverser() {
       @Override
       public void traverse(DirectoryTraversal traversal) throws IOException {
-        String rootPath = MorePaths.newPathInstance(traversal.getRoot()).toString();
+        String rootPath = newPathInstance(traversal.getRoot()).toString();
         if ("java/src/com/facebook/base/assets2".equals(rootPath)) {
           traversal.visit(
               new File("java/src/com/facebook/base/assets2",
@@ -264,7 +265,7 @@ public class AndroidBinaryRuleTest {
     };
 
     // Invoke createAllAssetsDirectory(), the method under test.
-    Optional<String> allAssetsDirectory = androidBinary.createAllAssetsDirectory(
+    Optional<Path> allAssetsDirectory = androidBinary.createAllAssetsDirectory(
         assetsDirectories, ImmutableMap.<String, File>of(), commands, traverser);
 
     // Verify that the existing assets/ directory will be passed to aapt.
@@ -324,7 +325,7 @@ public class AndroidBinaryRuleTest {
     DirectoryTraverser traverser = new DirectoryTraverser() {
       @Override
       public void traverse(DirectoryTraversal traversal) throws IOException {
-        String rootPath = MorePaths.newPathInstance(traversal.getRoot()).toString();
+        String rootPath = newPathInstance(traversal.getRoot()).toString();
         if ("java/src/com/facebook/base/assets1".equals(rootPath)) {
           traversal.visit(
               new File("java/src/com/facebook/base/assets1",
@@ -346,12 +347,13 @@ public class AndroidBinaryRuleTest {
     };
 
     // Invoke createAllAssetsDirectory(), the method under test.
-    Optional<String> allAssetsDirectory = androidBinary.createAllAssetsDirectory(
+    Optional<Path> allAssetsDirectory = androidBinary.createAllAssetsDirectory(
         assetsDirectories, ImmutableMap.<String, File>of(), commands, traverser);
 
     // Verify that an assets/ directory will be created and passed to aapt.
     assertTrue(allAssetsDirectory.isPresent());
-    assertEquals(BIN_DIR + "/java/src/com/facebook/base/__assets_apk__", allAssetsDirectory.get());
+    assertEquals(newPathInstance(BIN_DIR + "/java/src/com/facebook/base/__assets_apk__"),
+        allAssetsDirectory.get());
     List<? extends Step> expectedCommands = ImmutableList.of(
         new MakeCleanDirectoryStep(BIN_DIR + "/java/src/com/facebook/base/__assets_apk__"),
         new MkdirAndSymlinkFileStep(
@@ -451,7 +453,7 @@ public class AndroidBinaryRuleTest {
         .setManifest("AndroidManifest.xml")
         .setKeystore(keystoreTarget)
         .setTarget("Google Inc.:Google APIs:16"));
-    assertEquals(GEN_DIR + "/fb4a.apk", ruleInRootDirectory.getApkPath());
+    assertEquals(newPathInstance(GEN_DIR + "/fb4a.apk"), ruleInRootDirectory.getApkPath());
 
     AndroidBinaryRule ruleInNonRootDirectory = ruleResolver.buildAndAddToIndex(
         AndroidBinaryRule.newAndroidBinaryRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
@@ -459,7 +461,8 @@ public class AndroidBinaryRuleTest {
         .setManifest("AndroidManifest.xml")
         .setKeystore(keystoreTarget)
         .setTarget("Google Inc.:Google APIs:16"));
-    assertEquals(GEN_DIR + "/java/com/example/fb4a.apk", ruleInNonRootDirectory.getApkPath());
+    assertEquals(newPathInstance(GEN_DIR + "/java/com/example/fb4a.apk"),
+        ruleInNonRootDirectory.getApkPath());
   }
 
   @Test

@@ -29,12 +29,14 @@ import com.facebook.buck.rules.DependencyGraph;
 import com.facebook.buck.rules.InstallableBuildRule;
 import com.facebook.buck.rules.RuleKey;
 import com.facebook.buck.util.HumanReadableException;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 
 /**
@@ -55,7 +57,7 @@ public class AndroidInstrumentationApk extends AndroidBinaryRule {
   private final ImmutableSortedSet<BuildRule> classpathDepsForInstrumentationApk;
 
   private AndroidInstrumentationApk(BuildRuleParams buildRuleParams,
-      String manifest,
+      Path manifest,
       AndroidBinaryRule apkUnderTest,
       ImmutableSortedSet<BuildRule> classpathDepsForInstrumentationApk) {
     super(buildRuleParams,
@@ -129,7 +131,7 @@ public class AndroidInstrumentationApk extends AndroidBinaryRule {
 
   public static class Builder extends AbstractBuildRuleBuilder<AndroidInstrumentationApk> {
 
-    private String manifest = null;
+    private Path manifest = null;
     private BuildTarget apk = null;
 
     /** This should always be a subset of {@link #getDeps()}. */
@@ -161,7 +163,7 @@ public class AndroidInstrumentationApk extends AndroidBinaryRule {
     }
 
     public Builder setManifest(String manifest) {
-      this.manifest = manifest;
+      this.manifest = MorePaths.newPathInstance(manifest);
       return this;
     }
 

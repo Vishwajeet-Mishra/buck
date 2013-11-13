@@ -30,6 +30,7 @@ import com.facebook.buck.rules.RuleKey;
 import com.facebook.buck.shell.Genrule;
 import com.facebook.buck.step.ExecutionContext;
 import com.facebook.buck.util.HumanReadableException;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -100,13 +101,13 @@ public class ApkGenrule extends Genrule implements InstallableBuildRule {
   }
 
   @Override
-  public String getManifest() {
+  public Path getManifest() {
     return apk.getManifest();
   }
 
   @Override
-  public String getApkPath() {
-    return getAbsoluteOutputFilePath();
+  public Path getApkPath() {
+    return MorePaths.newPathInstance(getAbsoluteOutputFilePath());
   }
 
   @Override
@@ -128,7 +129,7 @@ public class ApkGenrule extends Genrule implements InstallableBuildRule {
       ExecutionContext context,
       ImmutableMap.Builder<String, String> environmentVariablesBuilder) {
     super.addEnvironmentVariables(context, environmentVariablesBuilder);
-    environmentVariablesBuilder.put("APK", apk.getApkPath());
+    environmentVariablesBuilder.put("APK", apk.getApkPath().toString());
   }
 
   public static class Builder extends Genrule.Builder {

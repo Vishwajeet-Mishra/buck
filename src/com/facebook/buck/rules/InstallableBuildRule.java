@@ -16,16 +16,18 @@
 
 package com.facebook.buck.rules;
 
+import java.nio.file.Path;
+
 public interface InstallableBuildRule extends BuildRule {
 
   /**
    * @return The manifest file for this build rule.
    */
-  public String getManifest();
+  public Path getManifest();
 
   /**
    * @return The APK at this path is the final one that points to an APK that a user should
    *         install.
    */
-  public String getApkPath();
+  public Path getApkPath();
 }

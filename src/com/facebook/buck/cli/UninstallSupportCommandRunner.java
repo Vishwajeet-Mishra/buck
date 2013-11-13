@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 
 /**
  * Base class for Commands which need {@link AndroidDebugBridge} and also need to
@@ -149,10 +150,10 @@ public abstract class UninstallSupportCommandRunner<T extends AbstractCommandOpt
   }
 
   String tryToExtractPackageNameFromManifest(InstallableBuildRule androidBinaryRule) {
-    String pathToManifest = androidBinaryRule.getManifest();
+    Path pathToManifest = androidBinaryRule.getManifest();
 
     // Note that the file may not exist if AndroidManifest.xml is a generated file.
-    File androidManifestXml = new File(pathToManifest);
+    File androidManifestXml = pathToManifest.toFile();
     if (!androidManifestXml.isFile()) {
       throw new HumanReadableException(
           "Manifest file %s does not exist, so could not extract package name.",

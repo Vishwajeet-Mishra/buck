@@ -33,6 +33,9 @@ public class MorePaths {
   private MorePaths() {}
 
   public static Path newPathInstance(String path) {
+    if ("".equals(path)) {
+      return Paths.get("");
+    }
     return separatorsToUnix(path);
   }
 

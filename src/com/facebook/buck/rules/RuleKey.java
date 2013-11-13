@@ -253,13 +253,17 @@ public class RuleKey {
       setKey(key);
       while (inputs.hasNext()) {
         Path input = inputs.next();
-        HashCode sha1 = hashCache.get(input);
-        if (sha1 == null) {
-          throw new RuntimeException("No SHA for " + input);
-        }
-        setVal(sha1.toString());
+        setInput(key, input);
       }
       return separate();
+    }
+
+    public Builder setInput(String key, Path input) throws IOException {
+      HashCode sha1 = hashCache.get(input);
+      if (sha1 == null) {
+        throw new RuntimeException("No SHA for " + input);
+      }
+      return setVal(sha1.toString());
     }
 
     public Builder setSourcePaths(String key, @Nullable ImmutableSortedSet<SourcePath> val) {

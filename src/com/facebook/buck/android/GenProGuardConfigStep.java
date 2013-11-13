@@ -24,16 +24,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 public class GenProGuardConfigStep extends ShellStep {
 
-  private final String androidManifestPath;
+  private final Path androidManifestPath;
   private final Set<String> resDirectories;
   private final String proguardConfigurationPath;
 
   public GenProGuardConfigStep(
-      String androidManifestPath,
+      Path androidManifestPath,
       Set<String> resDirectories,
       String proguardConfigurationPath) {
     this.androidManifestPath = Preconditions.checkNotNull(androidManifestPath);
@@ -62,7 +63,7 @@ public class GenProGuardConfigStep extends ShellStep {
     }
 
     // Add the remaining flags.
-    args.add("-M").add(androidManifestPath);
+    args.add("-M").add(androidManifestPath.toString());
     args.add("--auto-add-overlay");
     args.add("-I").add(androidPlatformTarget.getAndroidJar().getAbsolutePath());
 

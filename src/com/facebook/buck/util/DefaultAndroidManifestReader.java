@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
@@ -133,8 +134,8 @@ public class DefaultAndroidManifestReader implements AndroidManifestReader{
    * @return an {@code AndroidManifestReader} for {@code path}
    * @throws IOException
    */
-  public static AndroidManifestReader forPath(String path) throws IOException {
-    File androidManifestXml = new File(path);
+  public static AndroidManifestReader forPath(Path path) throws IOException {
+    File androidManifestXml = path.toFile();
     Reader reader = Files.newReader(androidManifestXml, Charsets.UTF_8);
     return forReader(reader);
   }

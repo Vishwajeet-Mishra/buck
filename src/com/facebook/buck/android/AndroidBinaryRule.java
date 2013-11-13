@@ -172,7 +172,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     }
   }
 
-  private final String manifest;
+  private final Path manifest;
   private final String target;
   private final ImmutableSortedSet<BuildRule> classpathDeps;
   private final Keystore keystore;
@@ -213,7 +213,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
    */
   protected AndroidBinaryRule(
       BuildRuleParams buildRuleParams,
-      String manifest,
+      Path manifest,
       String target,
       ImmutableSortedSet<BuildRule> classpathDeps,
       Keystore keystore,
@@ -274,7 +274,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   @Override
   public RuleKey.Builder appendToRuleKey(RuleKey.Builder builder) throws IOException {
     super.appendToRuleKey(builder)
-        .set("manifest", manifest)
+        .setInput("manifest", manifest)
         .set("target", target)
         .set("keystore", keystore.getBuildTarget().getFullyQualifiedName())
         .setRuleNames("classpathDeps", classpathDeps)
@@ -417,19 +417,19 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
 
   /** The APK at this path is the final one that points to an APK that a user should install. */
   @Override
-  public String getApkPath() {
-    return getUnsignedApkPath().replaceAll("\\.unsigned\\.apk$", ".apk");
+  public Path getApkPath() {
+    return MorePaths.newPathInstance(getUnsignedApkPath().replaceAll("\\.unsigned\\.apk$", ".apk"));
   }
 
   @Override
   public String getPathToOutputFile() {
-    return getApkPath();
+    return getApkPath().toString();
   }
 
   @Override
   public List<String> getInputsToCompareToOutput() {
     ImmutableList.Builder<String> inputs = ImmutableList.builder();
-    inputs.add(manifest);
+    inputs.add(manifest.toString());
     if (proguardConfig.isPresent()) {
       SourcePath sourcePath = proguardConfig.get();
       // Alternatively, if it is a BuildTargetSourcePath, then it should not be included.
@@ -455,11 +455,11 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   @VisibleForTesting
   FilterResourcesStep getFilterResourcesStep(Set<String> resourceDirectories) {
     ImmutableBiMap.Builder<String, String> filteredResourcesDirMapBuilder = ImmutableBiMap.builder();
-    String resDestinationBasePath = getBinPath("__filtered__%s__");
+    Path resDestinationBasePath = getBinPath("__filtered__%s__");
     int count = 0;
     for (String resDir : resourceDirectories) {
       filteredResourcesDirMapBuilder.put(resDir,
-          Paths.get(resDestinationBasePath, String.valueOf(count++)).toString());
+          resDestinationBasePath.resolve(String.valueOf(count++)).toString());
     }
 
     ImmutableBiMap<String, String> resSourceToDestDirMap = filteredResourcesDirMapBuilder.build();
@@ -502,10 +502,10 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
 
     // Extract the resources from third-party jars.
     // TODO(mbolin): The results of this should be cached between runs.
-    String extractedResourcesDir = getBinPath("__resources__%s__");
+    Path extractedResourcesDir = getBinPath("__resources__%s__");
     commands.add(new MakeCleanDirectoryStep(extractedResourcesDir));
     commands.add(new ExtractResourcesStep(dexTransitiveDependencies.pathsToThirdPartyJars,
-        extractedResourcesDir));
+        extractedResourcesDir.toString()));
 
     // Create the R.java files. Their compiled versions must be included in classes.dex.
     // TODO(mbolin): Skip this step if the transitive set of AndroidResourceRules is cached.
@@ -531,20 +531,20 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
       // Symlink everything in dexTransitiveDependencies.classpathEntriesToDex to the input
       // directory. Expect parallel outputs in the output directory and update classpathEntriesToDex
       // to reflect that.
-      final String preprocessJavaClassesInDir = getBinPath("java_classes_preprocess_in_%s");
-      final String preprocessJavaClassesOutDir = getBinPath("java_classes_preprocess_out_%s");
+      final Path preprocessJavaClassesInDir = getBinPath("java_classes_preprocess_in_%s");
+      final Path preprocessJavaClassesOutDir = getBinPath("java_classes_preprocess_out_%s");
       commands.add(new MakeCleanDirectoryStep(preprocessJavaClassesInDir));
       commands.add(new MakeCleanDirectoryStep(preprocessJavaClassesOutDir));
       commands.add(new SymlinkFilesIntoDirectoryStep(
           Paths.get("."),
           dexTransitiveDependencies.classpathEntriesToDex,
-          Paths.get(preprocessJavaClassesInDir)
+          preprocessJavaClassesInDir
           ));
       classpathEntriesToDex = FluentIterable.from(dexTransitiveDependencies.classpathEntriesToDex)
           .transform(new Function<String, String>() {
             @Override
             public String apply(String classpathEntry) {
-              return Paths.get(preprocessJavaClassesOutDir, classpathEntry).toString();
+              return preprocessJavaClassesOutDir.resolve(classpathEntry).toString();
             }
           })
           .toSet();
@@ -559,8 +559,8 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
         protected void addEnvironmentVariables(
             ExecutionContext context,
             ImmutableMap.Builder<String, String> environmentVariablesBuilder) {
-          environmentVariablesBuilder.put("IN_JARS_DIR", preprocessJavaClassesInDir);
-          environmentVariablesBuilder.put("OUT_JARS_DIR", preprocessJavaClassesOutDir);
+          environmentVariablesBuilder.put("IN_JARS_DIR", preprocessJavaClassesInDir.toString());
+          environmentVariablesBuilder.put("OUT_JARS_DIR", preprocessJavaClassesOutDir.toString());
         }
 
       });
@@ -582,7 +582,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     // Create the final DEX (or set of DEX files in the case of split dex).
     // The APK building command needs to take a directory of raw files, so we create a directory
     // that can only contain .dex files from this build rule.
-    String dexDir = getBinPath(".dex/%s");
+    Path dexDir = getBinPath(".dex/%s");
     commands.add(new MkdirStep(dexDir));
     String dexFile = String.format("%s/classes.dex", dexDir);
 
@@ -671,7 +671,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     // Copy the transitive closure of files in native_libs to a single directory, if any.
     ImmutableSet.Builder<String> nativeLibraryDirectories = ImmutableSet.builder();
     if (!transitiveDependencies.nativeLibsDirectories.isEmpty()) {
-      String pathForNativeLibs = getPathForNativeLibs();
+      Path pathForNativeLibs = getPathForNativeLibs();
       String libSubdirectory = pathForNativeLibs + "/lib";
       nativeLibraryDirectories.add(libSubdirectory);
       commands.add(new MakeCleanDirectoryStep(libSubdirectory));
@@ -684,7 +684,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     String resourceApkPath = getResourceApkPath();
     String unsignedApkPath = getUnsignedApkPath();
 
-    Optional<String> assetsDirectory;
+    Optional<Path> assetsDirectory;
     if (transitiveDependencies.assetsDirectories.isEmpty() && extraAssets.isEmpty()
         && transitiveDependencies.nativeLibAssetsDirectories.isEmpty()
         && !isStoreStringsAsAssets()) {
@@ -702,7 +702,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     }
 
     if (isStoreStringsAsAssets()) {
-      Path stringAssetsDir = Paths.get(assetsDirectory.get()).resolve("strings");
+      Path stringAssetsDir = assetsDirectory.get().resolve("strings");
       commands.add(new MakeCleanDirectoryStep(stringAssetsDir));
       commands.add(new CopyStep(
           getPathForTmpStringAssetsDirectory(),
@@ -768,7 +768,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
       apkToAlign = signedApkPath;
     }
 
-    String apkPath = getApkPath();
+    Path apkPath = getApkPath();
     ZipalignStep zipalign = new ZipalignStep(apkToAlign, apkPath);
     commands.add(zipalign);
 
@@ -790,7 +790,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
    * be an empty {@link Optional}.
    */
   @VisibleForTesting
-  Optional<String> createAllAssetsDirectory(
+  Optional<Path> createAllAssetsDirectory(
       Set<String> assetsDirectories,
       ImmutableMap<String, File> extraAssets,
       ImmutableList.Builder<Step> commands,
@@ -801,11 +801,11 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
 
     // Due to a limitation of aapt, only one assets directory can be specified, so if multiple are
     // specified in Buck, then all of the contents must be symlinked to a single directory.
-    String destination = getPathToAllAssetsDirectory();
+    Path destination = getPathToAllAssetsDirectory();
     commands.add(new MakeCleanDirectoryStep(destination));
     final ImmutableMap.Builder<String, File> allAssets = ImmutableMap.builder();
 
-    File destinationDirectory = new File(destination);
+    File destinationDirectory = destination.toFile();
     for (String assetsDirectory : assetsDirectories) {
       traverser.traverse(new DirectoryTraversal(new File(assetsDirectory)) {
         @Override
@@ -875,18 +875,18 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   }
 
   @VisibleForTesting
-  String getPathToAllAssetsDirectory() {
+  Path getPathToAllAssetsDirectory() {
     return getBinPath("__assets_%s__");
   }
 
   private Path getPathForTmpStringAssetsDirectory() {
-    return Paths.get(getBinPath("__strings_%s__"));
+    return getBinPath("__strings_%s__");
   }
 
   /**
    * All native libs are copied to this directory before running aapt.
    */
-  private String getPathForNativeLibs() {
+  private Path getPathForNativeLibs() {
     return getBinPath("__native_libs_%s__");
   }
 
@@ -924,7 +924,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
    * Therefore, commands created by this method should use this method instead of
    * {@link #getManifest()}.
    */
-  private String getAndroidManifestXml() {
+  private Path getAndroidManifestXml() {
     return getBinPath("__manifest_%s__/AndroidManifest.xml");
   }
 
@@ -934,11 +934,11 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
    * short name.
    * {@code format} should not start with a slash.
    */
-  private String getBinPath(String format) {
-    return String.format("%s/%s" + format,
+  private Path getBinPath(String format) {
+    return MorePaths.newPathInstance(String.format("%s/%s" + format,
         BuckConstant.BIN_DIR,
         getBuildTarget().getBasePathWithSlash(),
-        getBuildTarget().getShortName());
+        getBuildTarget().getShortName()));
   }
 
   @VisibleForTesting
@@ -1054,7 +1054,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
       String magicSecondaryDexSubdir = "assets/secondary-program-dex-jars";
 
       // Intermediate directory holding the primary split-zip jar.
-      String splitZipDir = getBinPath("__%s_split_zip__");
+      Path splitZipDir = getBinPath("__%s_split_zip__");
       commands.add(new MakeCleanDirectoryStep(splitZipDir));
       String primaryJarPath = splitZipDir + "/primary.jar";
 
@@ -1067,13 +1067,13 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
       // important because SmartDexingCommand will try to dx every entry in this directory.  It
       // does this because it's impossible to know what outputs split-zip will generate until it
       // runs.
-      String secondaryZipDir = getBinPath("__%s_secondary_zip__");
+      Path secondaryZipDir = getBinPath("__%s_secondary_zip__");
       commands.add(new MakeCleanDirectoryStep(secondaryZipDir));
 
       // Run the split-zip command which is responsible for dividing the large set of input
       // classpaths into a more compact set of jar files such that no one jar file when dexed will
       // yield a dex artifact too large for dexopt or the dx method limit to handle.
-      String zipSplitReportDir = getBinPath("__%s_split_zip_report__");
+      Path zipSplitReportDir = getBinPath("__%s_split_zip_report__");
       commands.add(new MakeCleanDirectoryStep(zipSplitReportDir));
       SplitZipStep splitZipCommand = new SplitZipStep(
           classpathEntriesToDex,
@@ -1093,16 +1093,16 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
 
       // Add the secondary dex directory that has yet to be created, but will be by the
       // smart dexing command.  Smart dex will handle "cleaning" this directory properly.
-      String secondaryDexParentDir = getBinPath("__%s_secondary_dex__/");
+      Path secondaryDexParentDir = getBinPath("__%s_secondary_dex__/");
       secondaryDexDir = Optional.of(secondaryDexParentDir + magicSecondaryDexSubdir);
       commands.add(new MkdirStep(secondaryDexDir.get()));
 
       secondaryDexDirectories.add(secondaryJarMetaDirParent);
-      secondaryDexDirectories.add(secondaryDexParentDir);
+      secondaryDexDirectories.add(secondaryDexParentDir.toString());
 
       // Adjust smart-dex inputs for the split-zip case.
       primaryInputsToDex = ImmutableSet.of(primaryJarPath);
-      secondaryInputsDir = Optional.of(secondaryZipDir);
+      secondaryInputsDir = Optional.of(secondaryZipDir.toString());
     } else {
       // Simple case where our inputs are the natural classpath directories and we don't have
       // to worry about secondary jar/dex files.
@@ -1113,7 +1113,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
 
     // Stores checksum information from each invocation to intelligently decide when dx needs
     // to be re-run.
-    Path successDir = Paths.get(getBinPath("__%s_smart_dex__/.success"));
+    Path successDir = getBinPath("__%s_smart_dex__/.success");
     commands.add(new MkdirStep(successDir));
 
     // Add the smart dexing tool that is capable of avoiding the external dx invocation(s) if
@@ -1143,7 +1143,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
    *     AndroidManifest.xml.
    */
   @Override
-  public String getManifest() {
+  public Path getManifest() {
     return manifest;
   }
 
@@ -1188,7 +1188,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   public static class Builder extends AbstractBuildRuleBuilder<AndroidBinaryRule> {
     private static final PackageType DEFAULT_PACKAGE_TYPE = PackageType.DEBUG;
 
-    private String manifest;
+    private Path manifest;
     private String target;
 
     /** This should always be a subset of {@link #getDeps()}. */
@@ -1386,7 +1386,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     }
 
     public Builder setManifest(String manifest) {
-      this.manifest = manifest;
+      this.manifest = MorePaths.newPathInstance(manifest);
       return this;
     }
 

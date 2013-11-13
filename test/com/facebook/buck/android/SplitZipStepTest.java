@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.facebook.buck.dalvik.ZipSplitter;
 import com.facebook.buck.step.ExecutionContext;
+import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -57,26 +58,20 @@ public class SplitZipStepTest {
   @Test
   public void testMetaList() throws IOException {
     File outJar = tempDir.newFile("test.jar");
-    ZipOutputStream zipOut = new ZipOutputStream(
-        new BufferedOutputStream(new FileOutputStream(outJar)));
     Map<String, String> fileToClassName = ImmutableMap.of(
         "com/facebook/foo.class", "com.facebook.foo",
         "bar.class", "bar");
-    try {
+    try (ZipOutputStream zipOut = new ZipOutputStream(
+        new BufferedOutputStream(new FileOutputStream(outJar)))) {
       for (String entry : fileToClassName.keySet()) {
         zipOut.putNextEntry(new ZipEntry(entry));
-        zipOut.write(new byte[] { 0 });
+        zipOut.write(new byte[]{0});
       }
-    } finally {
-      zipOut.close();
     }
 
     StringWriter stringWriter = new StringWriter();
-    BufferedWriter writer = new BufferedWriter(stringWriter);
-    try {
+    try (BufferedWriter writer = new BufferedWriter(stringWriter)) {
       SplitZipStep.writeMetaList(writer, ImmutableList.of(outJar), DexStore.JAR);
-    } finally {
-      writer.close();
     }
     List<String> lines = CharStreams.readLines(new StringReader(stringWriter.toString()));
     assertEquals(1, lines.size());
@@ -99,14 +94,14 @@ public class SplitZipStepTest {
         /* inputPathsToSplit */ ImmutableSet.<String>of(),
         /* secondaryJarMetaPath */ "",
         /* primaryJarPath */ "",
-        /* secondaryJarDir */ "",
+        /* secondaryJarDir */ MorePaths.newPathInstance(""),
         /* secondaryJarPattern */ "",
         /* proguardMappingFile */ Optional.<Path>absent(),
         /* primaryDexSubstrings */ ImmutableSet.of("List"),
         Optional.of(primaryDexClassesFile),
         ZipSplitter.DexSplitStrategy.MAXIMIZE_PRIMARY_DEX_SIZE,
         DexStore.JAR,
-        /* pathToReportDir */ "",
+        /* pathToReportDir */ MorePaths.newPathInstance(""),
         /* useLinearAllocSplitDex */ true,
         /* linearAllocHardLimit */ 4 * 1024 * 1024);
     List<String> linesInManifestFile = ImmutableList.of(
@@ -160,14 +155,14 @@ public class SplitZipStepTest {
         /* inputPathsToSplit */ ImmutableSet.<String>of(),
         /* secondaryJarMetaPath */ "",
         /* primaryJarPath */ "",
-        /* secondaryJarDir */ "",
+        /* secondaryJarDir */ MorePaths.newPathInstance(""),
         /* secondaryJarPattern */ "",
         /* proguardMappingFile */ Optional.of(proguardMappingFile),
         /* primaryDexSubstrings */ ImmutableSet.of("/primary/", "x/"),
         Optional.of(primaryDexClassesFile),
         ZipSplitter.DexSplitStrategy.MAXIMIZE_PRIMARY_DEX_SIZE,
         DexStore.JAR,
-        /* pathToReportDir */ "",
+        /* pathToReportDir */ MorePaths.newPathInstance(""),
         /* useLinearAllocSplitDex */ true,
         /* linearAllocHardLimit */ 4 * 1024 * 1024);
     List<String> linesInMappingFile = ImmutableList.of(

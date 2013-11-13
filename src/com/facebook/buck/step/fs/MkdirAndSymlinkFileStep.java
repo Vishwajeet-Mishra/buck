@@ -22,6 +22,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -31,6 +32,10 @@ public final class MkdirAndSymlinkFileStep extends CompositeStep {
 
   private final String source;
   private final String target;
+
+  public MkdirAndSymlinkFileStep(Path source, Path target) {
+    this(source.toString(), target.toString());
+  }
 
   public MkdirAndSymlinkFileStep(String source, String target) {
     super(ImmutableList.of(
