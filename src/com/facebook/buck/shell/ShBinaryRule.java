@@ -93,8 +93,8 @@ public class ShBinaryRule extends DoNotUseAbstractBuildable implements BinaryBui
   }
 
   @Override
-  public String getPathToOutputFile() {
-    return output.toString();
+  public Path getPathToOutputFile() {
+    return output;
   }
 
   @Override

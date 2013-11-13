@@ -89,7 +89,7 @@ public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLi
     ImmutableSortedSet.Builder<String> inputsToConsiderForCachingPurposes = ImmutableSortedSet
         .naturalOrder();
 
-    Buildables.addInputsToSortedSet(getLibraryPath().toString(),
+    Buildables.addInputsToSortedSet(getLibraryPath(),
         inputsToConsiderForCachingPurposes,
         directoryTraverser);
 
@@ -98,7 +98,7 @@ public class PrebuiltNativeLibrary extends AbstractBuildable implements NativeLi
 
   @Override
   @Nullable
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     // A prebuilt_native_library does not have a "primary output" at this time.
     return null;
   }

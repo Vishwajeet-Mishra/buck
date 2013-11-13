@@ -42,6 +42,7 @@ import org.easymock.EasyMock;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -65,7 +66,7 @@ public class AndroidManifestTest {
         ImmutableList.of("java/com/example/AndroidManifestSkeleton.xml"),
         ImmutableList.copyOf(androidManifestRule.getInputsToCompareToOutput()));
     assertEquals(
-        BuckConstant.GEN_DIR + "/java/com/example/AndroidManifest__manifest__.xml",
+        Paths.get(BuckConstant.GEN_DIR + "/java/com/example/AndroidManifest__manifest__.xml"),
         androidManifestRule.getPathToOutputFile());
   }
 
@@ -90,7 +91,7 @@ public class AndroidManifestTest {
             new GenerateManifestStep(
                 "java/com/example/AndroidManifestSkeleton.xml",
                 /* libraryManifestPaths */ ImmutableSet.<String>of(),
-                BuckConstant.GEN_DIR + "/java/com/example/AndroidManifest__manifest__.xml")),
+                Paths.get(BuckConstant.GEN_DIR + "/java/com/example/AndroidManifest__manifest__.xml"))),
         steps);
 
     EasyMock.verify(buildContext);

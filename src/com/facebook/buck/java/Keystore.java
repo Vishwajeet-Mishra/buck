@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -48,7 +49,7 @@ public class Keystore extends AbstractBuildable {
 
   @Nullable
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     return null;
   }
 

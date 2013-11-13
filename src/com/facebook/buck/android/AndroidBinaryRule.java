@@ -419,8 +419,8 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   }
 
   @Override
-  public String getPathToOutputFile() {
-    return getApkPath().toString();
+  public Path getPathToOutputFile() {
+    return getApkPath();
   }
 
   @Override
@@ -866,9 +866,9 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
   Path getPathForProGuardDirectory() {
     return MorePaths.newPathInstance(
         String.format("%s/%s.proguard/%s",
-        BuckConstant.GEN_DIR,
-        getBuildTarget().getBasePathWithSlash(),
-        getBuildTarget().getShortName()));
+            BuckConstant.GEN_DIR,
+            getBuildTarget().getBasePathWithSlash(),
+            getBuildTarget().getShortName()));
   }
 
   @VisibleForTesting

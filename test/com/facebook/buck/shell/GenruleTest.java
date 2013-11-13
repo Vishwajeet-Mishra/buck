@@ -154,7 +154,7 @@ public class GenruleTest {
 
     // Verify all of the observers of the Genrule.
     assertEquals(BuildRuleType.GENRULE, genrule.getType());
-    assertEquals(GEN_DIR + "/src/com/facebook/katana/AndroidManifest.xml",
+    assertEquals(Paths.get(GEN_DIR + "/src/com/facebook/katana/AndroidManifest.xml"),
         genrule.getPathToOutputFile());
     assertEquals(
         getAbsolutePathInBase(GEN_DIR + "/src/com/facebook/katana/AndroidManifest.xml").toString(),
@@ -236,8 +236,8 @@ public class GenruleTest {
     BuildTarget depTarget = new BuildTarget("//foo", "bar");
     BuildRule dep = new FakeBuildRule(BuildRuleType.JAVA_LIBRARY, depTarget) {
       @Override
-      public String getPathToOutputFile() {
-        return "buck-out/gen/foo/bar.jar";
+      public Path getPathToOutputFile() {
+        return Paths.get("buck-out/gen/foo/bar.jar");
       }
     };
     BuildRuleResolver ruleResolver = new BuildRuleResolver(ImmutableMap.of(depTarget, dep));

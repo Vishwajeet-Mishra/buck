@@ -36,7 +36,7 @@ public class FakeBuildRule extends AbstractBuildRule implements BuildRule, Build
   private final BuildRuleType type;
 
   @Nullable
-  private String outputFile;
+  private Path outputFile;
 
   @Nullable
   private RuleKey ruleKey;
@@ -84,11 +84,11 @@ public class FakeBuildRule extends AbstractBuildRule implements BuildRule, Build
   }
 
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     return outputFile;
   }
 
-  public void setOutputFile(String outputFile) {
+  public void setOutputFile(Path outputFile) {
     this.outputFile = outputFile;
   }
 

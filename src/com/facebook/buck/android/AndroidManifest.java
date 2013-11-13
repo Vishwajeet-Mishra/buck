@@ -31,10 +31,12 @@ import com.facebook.buck.rules.SourcePath;
 import com.facebook.buck.rules.SourcePaths;
 import com.facebook.buck.step.Step;
 import com.facebook.buck.util.BuckConstant;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -104,12 +106,12 @@ public class AndroidManifest extends AbstractBuildable {
   }
 
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     BuildTarget target = buildTarget;
-    return String.format("%s/%sAndroidManifest__%s__.xml",
+    return MorePaths.newPathInstance(String.format("%s/%sAndroidManifest__%s__.xml",
         BuckConstant.GEN_DIR,
         target.getBasePathWithSlash(),
-        target.getShortName());
+        target.getShortName()));
   }
 
   /**

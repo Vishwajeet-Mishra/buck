@@ -19,6 +19,7 @@ package com.facebook.buck.rules;
 import com.facebook.buck.step.Step;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -61,5 +62,5 @@ public interface Buildable {
    *     identify a single file (as opposed to a directory).
    */
   @Nullable
-  public String getPathToOutputFile();
+  public Path getPathToOutputFile();
 }

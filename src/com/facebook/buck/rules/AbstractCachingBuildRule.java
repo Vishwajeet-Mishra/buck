@@ -39,7 +39,6 @@ import com.google.common.util.concurrent.SettableFuture;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -379,10 +378,11 @@ public abstract class AbstractCachingBuildRule extends AbstractBuildRule
     // TODO(mbolin): Buildable.getSteps() should use BuildableContext such that Buildable is
     // responsible for invoking recordArtifact() itself. Once that is done, this call to
     // recordArtifact() should be deleted.
-    String pathToOutputFile = buildable.getPathToOutputFile();
+    Path pathToOutputFile = buildable.getPathToOutputFile();
     if (pathToOutputFile != null && pathToOutputFile.startsWith(BuckConstant.GEN_DIR)) {
-      String prefix = BuckConstant.GEN_DIR + '/' + getBuildTarget().getBasePathWithSlash();
-      Path pathToArtifact = Paths.get(pathToOutputFile.substring(prefix.length()));
+      Path prefix = MorePaths.newPathInstance(
+          BuckConstant.GEN_DIR + '/' + getBuildTarget().getBasePath());
+      Path pathToArtifact = MorePaths.getRelativePath(pathToOutputFile, prefix);
       buildInfoRecorder.recordArtifact(pathToArtifact);
     }
 

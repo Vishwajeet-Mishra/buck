@@ -69,7 +69,7 @@ public class PythonLibrary extends AbstractBuildable {
 
   @Nullable
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     return null;
   }
 

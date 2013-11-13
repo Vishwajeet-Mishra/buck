@@ -69,7 +69,7 @@ public class AccumulateClassNamesTest extends EasyMockSupport {
     AccumulateClassNames accumulateClassNames = (AccumulateClassNames) buildRule.getBuildable();
 
     // Test the observers.
-    String pathToOutput = "buck-out/gen/foo/bar/baz#class_names.classes.txt";
+    Path pathToOutput = Paths.get("buck-out/gen/foo/bar/baz#class_names.classes.txt");
     assertEquals(pathToOutput,
         accumulateClassNames.getPathToOutputFile());
     assertEquals("There should not be any input files that factor into the cache key.",
@@ -91,7 +91,7 @@ public class AccumulateClassNamesTest extends EasyMockSupport {
         .newBuilder()
         .setProjectFilesystem(projectFilesystem)
         .build();
-    Path absolutePathToOutput = projectFilesystem.resolve(Paths.get(pathToOutput));
+    Path absolutePathToOutput = projectFilesystem.resolve(pathToOutput);
     MoreAsserts.assertSteps("Delete old classes.txt file, if present, and then write a new one.",
         ImmutableList.of(
           "rm -f " + absolutePathToOutput,

@@ -153,11 +153,11 @@ public class TestCommand extends AbstractCommandRunner<TestCommandOptions> {
 
     // Add all JAR files produced by java libraries that we are testing to -instrpath.
     for (JavaLibraryRule path : rulesUnderTest) {
-      String pathToOutput = path.getPathToOutputFile();
+      Path pathToOutput = path.getPathToOutputFile();
       if (pathToOutput == null) {
         continue;
       }
-      pathsToInstrumentedClasses.add(projectFilesystem.getPathRelativizer().apply(pathToOutput));
+      pathsToInstrumentedClasses.add(projectFilesystem.getPathRelativiser().apply(pathToOutput));
     }
 
     // Run EMMA instrumentation. This will instrument the classes we generated in the build command.

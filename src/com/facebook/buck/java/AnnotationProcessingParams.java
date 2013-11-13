@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
@@ -189,9 +190,9 @@ public class AnnotationProcessingParams implements AnnotationProcessingData {
         // We're using raw strings here to avoid circular dependencies.
         // TODO(simons): don't use raw strings.
         if ("java_binary".equals(type) || "prebuilt_jar".equals(type)) {
-          String pathToOutput = rule.getBuildable().getPathToOutputFile();
+          Path pathToOutput = rule.getBuildable().getPathToOutputFile();
           if (pathToOutput != null) {
-            searchPathElements.add(pathToOutput);
+            searchPathElements.add(pathToOutput.toString());
           }
         } else if (rule instanceof HasClasspathEntries) {
           HasClasspathEntries javaLibraryRule = (HasClasspathEntries)rule;

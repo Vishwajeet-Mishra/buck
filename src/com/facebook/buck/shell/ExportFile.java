@@ -124,8 +124,8 @@ public class ExportFile extends AbstractBuildable {
 
   @Nullable
   @Override
-  public String getPathToOutputFile() {
-    return out.get().toString();
+  public Path getPathToOutputFile() {
+    return out.get();
   }
 
   public static Builder newExportFileBuilder(AbstractBuildRuleBuilderParams params) {

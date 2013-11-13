@@ -22,7 +22,6 @@ import com.facebook.buck.rules.BuildRule;
 import com.facebook.buck.rules.Buildable;
 import com.facebook.buck.step.ExecutionContext;
 import com.facebook.buck.util.HumanReadableException;
-import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.facebook.buck.util.Verbosity;
 import com.facebook.buck.util.environment.Platform;
@@ -234,8 +233,7 @@ public abstract class AbstractGenruleStep extends ShellStep {
   }
 
   private Path getLocationReplacementFrom(ProjectFilesystem filesystem, Buildable matchingRule) {
-    return filesystem.getPathRelativiser().apply(
-        MorePaths.newPathInstance(matchingRule.getPathToOutputFile()));
+    return filesystem.getPathRelativiser().apply(matchingRule.getPathToOutputFile());
   }
 
   /**

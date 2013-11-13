@@ -63,8 +63,8 @@ public class AccumulateClassNames extends AbstractBuildable {
   }
 
   @Override
-  public String getPathToOutputFile() {
-    return pathToOutputFile.toString();
+  public Path getPathToOutputFile() {
+    return pathToOutputFile;
   }
 
   public JavaLibraryRule getJavaLibraryRule() {
@@ -76,14 +76,14 @@ public class AccumulateClassNames extends AbstractBuildable {
       throws IOException {
     ImmutableList.Builder<Step> steps = ImmutableList.builder();
 
-    steps.add(new RmStep(getPathToOutputFile(), /* shouldForceDeletion */ true));
+    steps.add(new RmStep(getPathToOutputFile().toString(), /* shouldForceDeletion */ true));
 
     // Make sure that the output directory exists for the output file.
     steps.add(new MkdirStep(pathToOutputFile.getParent()));
 
     steps.add(new AccumulateClassNamesStep(
-        Paths.get(javaLibraryRule.getPathToOutputFile()),
-        Paths.get(getPathToOutputFile())));
+        javaLibraryRule.getPathToOutputFile(),
+        getPathToOutputFile()));
 
     return steps.build();
   }

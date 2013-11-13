@@ -174,7 +174,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
   /** @return the absolute path to the output file */
   public String getAbsoluteOutputFilePath() {
-    return relativeToAbsolutePathFunction.apply(MorePaths.newPathInstance(getPathToOutputFile())).toString();
+    return relativeToAbsolutePathFunction.apply(getPathToOutputFile()).toString();
   }
 
   @Override
@@ -185,8 +185,8 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
   }
 
   @Override
-  public String getPathToOutputFile() {
-    return pathToOutFile.toString();
+  public Path getPathToOutputFile() {
+    return pathToOutFile;
   }
 
   @Override
@@ -233,7 +233,7 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
 
     Buildable buildable = Preconditions.checkNotNull(rule.getBuildable());
 
-    Path output = MorePaths.newPathInstance(buildable.getPathToOutputFile());
+    Path output = buildable.getPathToOutputFile();
     if (output != null) {
       // TODO(mbolin): This is a giant hack and we should do away with $DEPS altogether.
       // There can be a lot of paths here and the filesystem location can be arbitrarily long.
@@ -278,7 +278,8 @@ public class Genrule extends DoNotUseAbstractBuildable implements Buildable {
     ImmutableList.Builder<Step> commands = ImmutableList.builder();
 
     // Delete the old output for this rule, if it exists.
-    commands.add(new RmStep(getPathToOutputFile(), true /* shouldForceDeletion */));
+    commands.add(
+        new RmStep(getPathToOutputFile(), true /* shouldForceDeletion */, false /* recurse */));
 
     // Make sure that the directory to contain the output file exists. Rules get output to a
     // directory named after the base path, so we don't want to nuke the entire directory.

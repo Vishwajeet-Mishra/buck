@@ -119,7 +119,7 @@ public class AbstractCachingBuildRuleTest extends EasyMockSupport {
 
     // Replay the mocks to instantiate the AbstractCachingBuildRule.
     replayAll();
-    String pathToOutputFile = "some_file";
+    Path pathToOutputFile = Paths.get("some_file");
     List<Step> buildSteps = Lists.newArrayList();
     AbstractCachingBuildRule cachingRule = createRule(
         ImmutableSet.of(dep),
@@ -379,7 +379,7 @@ public class AbstractCachingBuildRuleTest extends EasyMockSupport {
       ImmutableSet<BuildRule> deps,
       Iterable<Path> inputs,
       List<Step> buildSteps,
-      @Nullable String pathToOutputFile) {
+      @Nullable Path pathToOutputFile) {
     Comparator<BuildRule> comparator = RetainOrderComparator.createComparator(deps);
     ImmutableSortedSet<BuildRule> sortedDeps = ImmutableSortedSet.copyOf(comparator, deps);
 
@@ -407,14 +407,14 @@ public class AbstractCachingBuildRuleTest extends EasyMockSupport {
   private static class BuildableAbstractCachingBuildRule extends DoNotUseAbstractBuildable {
 
     private final Iterable<Path> inputs;
-    private final String pathToOutputFile;
+    private final Path pathToOutputFile;
     private final List<Step> buildSteps;
 
     private boolean isInitializedFromDisk = false;
 
     private BuildableAbstractCachingBuildRule(BuildRuleParams params,
         Iterable<Path> inputs,
-        @Nullable String pathToOutputFile,
+        @Nullable Path pathToOutputFile,
         List<Step> buildSteps) {
       super(params);
       this.inputs = inputs;
@@ -434,7 +434,7 @@ public class AbstractCachingBuildRuleTest extends EasyMockSupport {
 
     @Override
     @Nullable
-    public String getPathToOutputFile() {
+    public Path getPathToOutputFile() {
       return pathToOutputFile;
     }
 

@@ -73,6 +73,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.SortedMap;
@@ -84,11 +85,11 @@ public class TargetsCommandTest {
   private TestConsole console;
   private TargetsCommand targetsCommand;
 
-  private SortedMap<String, BuildRule> buildBuildTargets(String outputFile, String name) {
+  private SortedMap<String, BuildRule> buildBuildTargets(Path outputFile, String name) {
     return buildBuildTargets(outputFile, name, "//");
   }
 
-  private SortedMap<String, BuildRule> buildBuildTargets(String outputFile,
+  private SortedMap<String, BuildRule> buildBuildTargets(Path outputFile,
       String name,
       String baseName) {
     SortedMap<String, BuildRule> buildRules = Maps.newTreeMap();
@@ -128,7 +129,7 @@ public class TargetsCommandTest {
   @Test
   public void testJsonOutputForBuildTarget() throws IOException, BuildFileParseException {
     final String testBuckFileJson1 = testDataPath("TargetsCommandTestBuckJson1.js");
-    final String outputFile = "buck-out/gen/test/outputFile";
+    final Path outputFile = Paths.get("buck-out/gen/test/outputFile");
     JsonFactory jsonFactory = new JsonFactory();
     ObjectMapper mapper = new ObjectMapper();
 
@@ -142,7 +143,7 @@ public class TargetsCommandTest {
 
     // parse the expected JSON.
     String expectedJson = Files.toString(new File(testBuckFileJson1), Charsets.UTF_8)
-        .replace("{$OUTPUT_FILE}", outputFile);
+        .replace("{$OUTPUT_FILE}", outputFile.toString());
     JsonNode expected = mapper.readTree(jsonFactory.createJsonParser(expectedJson)
         .enable(Feature.ALLOW_COMMENTS));
 
@@ -154,7 +155,7 @@ public class TargetsCommandTest {
 
   @Test
   public void testNormalOutputForBuildTarget() throws IOException {
-    final String outputFile = "buck-out/gen/test/outputFile";
+    final Path outputFile = Paths.get("buck-out/gen/test/outputFile");
 
     // run `buck targets` on the build file and parse the observed JSON.
     SortedMap<String, BuildRule> buildRules = buildBuildTargets(outputFile, "test-library");
@@ -172,7 +173,7 @@ public class TargetsCommandTest {
 
   @Test
   public void testNormalOutputForBuildTargetWithOutput() throws IOException {
-    final String outputFile = "buck-out/gen/test/outputFile";
+    final Path outputFile = Paths.get("buck-out/gen/test/outputFile");
 
     // run `buck targets` on the build file and parse the observed JSON.
     SortedMap<String, BuildRule> buildRules = buildBuildTargets(
@@ -194,7 +195,8 @@ public class TargetsCommandTest {
   public void testJsonOutputForMissingBuildTarget() throws BuildFileParseException, IOException {
     // nonexistent target should not exist.
     final String outputFile = "buck-out/gen/test/outputFile";
-    SortedMap<String, BuildRule> buildRules = buildBuildTargets(outputFile, "nonexistent");
+    SortedMap<String, BuildRule> buildRules = buildBuildTargets(
+        Paths.get(outputFile), "nonexistent");
     targetsCommand.printJsonForTargets(buildRules, /* includes */ ImmutableList.<String>of());
 
     String output = console.getTextWrittenToStdOut();

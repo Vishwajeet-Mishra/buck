@@ -17,6 +17,7 @@
 package com.facebook.buck.rules;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import javax.annotation.Nullable;
 
@@ -52,7 +53,7 @@ public abstract class DoNotUseAbstractBuildable extends AbstractCachingBuildRule
 
   @Nullable
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     return null;
   }
 }

@@ -108,7 +108,7 @@ public class DexProducedFromJavaLibraryThatContainsClassFiles extends AbstractBu
 
     // Check whether the list of class files in the JavaLibraryRule is empty.
     FileExistsAndIsNotEmptyStep fileExistsStep = new FileExistsAndIsNotEmptyStep(
-        Paths.get(javaLibraryWithClassesList.getPathToOutputFile()));
+        javaLibraryWithClassesList.getPathToOutputFile());
     hasOutputFile = fileExistsStep;
     steps.add(fileExistsStep);
 
@@ -116,7 +116,7 @@ public class DexProducedFromJavaLibraryThatContainsClassFiles extends AbstractBu
     // merged into a final classes.dex that uses jumbo instructions.
     JavaLibraryRule javaLibraryRuleToDex = javaLibraryWithClassesList.getJavaLibraryRule();
     DxStep dx = new DxStep(getPathToDex().toString(),
-        Collections.singleton(Paths.get(javaLibraryRuleToDex.getPathToOutputFile())),
+        Collections.singleton(javaLibraryRuleToDex.getPathToOutputFile()),
         EnumSet.of(DxStep.Option.NO_OPTIMIZE, DxStep.Option.FORCE_JUMBO));
     AbstractExecutionStep recordArtifactStep = new AbstractExecutionStep("record dx success") {
       @Override
@@ -137,7 +137,7 @@ public class DexProducedFromJavaLibraryThatContainsClassFiles extends AbstractBu
 
   @Override
   @Nullable
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     // A .dex file is not guaranteed to be generated, so we return null to be conservative.
     return null;
   }

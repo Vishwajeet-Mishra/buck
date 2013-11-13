@@ -17,7 +17,6 @@
 package com.facebook.buck.java;
 
 import static com.facebook.buck.rules.BuildableProperties.Kind.PACKAGING;
-import static com.facebook.buck.util.MorePaths.newPathInstance;
 
 import com.facebook.buck.model.BuildTarget;
 import com.facebook.buck.rules.AbstractBuildRuleBuilder;
@@ -39,6 +38,7 @@ import com.facebook.buck.step.fs.MkdirStep;
 import com.facebook.buck.util.BuckConstant;
 import com.facebook.buck.util.DefaultDirectoryTraverser;
 import com.facebook.buck.util.DirectoryTraverser;
+import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -47,6 +47,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -63,7 +64,7 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
   private final String manifestFile;
 
   @Nullable
-  private final String metaInfDirectory;
+  private final Path metaInfDirectory;
 
   private final DirectoryTraverser directoryTraverser;
 
@@ -71,7 +72,7 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
       BuildRuleParams buildRuleParams,
       @Nullable String mainClass,
       @Nullable String manifestFile,
-      @Nullable String metaInfDirectory,
+      @Nullable Path metaInfDirectory,
       DirectoryTraverser directoryTraverser) {
     super(buildRuleParams);
     this.mainClass = mainClass;
@@ -124,14 +125,14 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
   public List<Step> getBuildSteps(BuildContext context, BuildableContext buildableContext) throws IOException {
     ImmutableList.Builder<Step> commands = ImmutableList.builder();
 
-    String outputDirectory = getOutputDirectory();
+    Path outputDirectory = getOutputDirectory();
     Step mkdir = new MkdirStep(outputDirectory);
     commands.add(mkdir);
 
     ImmutableSet<String> includePaths;
     if (metaInfDirectory != null) {
-      String stagingRoot = outputDirectory + "/meta_inf_staging";
-      String stagingTarget = stagingRoot + "/META-INF";
+      Path stagingRoot = outputDirectory.resolve("meta_inf_staging");
+      Path stagingTarget = stagingRoot.resolve("META-INF");
 
       MakeCleanDirectoryStep createStagingRoot = new MakeCleanDirectoryStep(stagingRoot);
       commands.add(createStagingRoot);
@@ -141,16 +142,15 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
       commands.add(link);
 
       includePaths = ImmutableSet.<String>builder()
-          .add(stagingRoot)
+          .add(stagingRoot.toString())
           .addAll(getTransitiveClasspathEntries().values())
           .build();
     } else {
       includePaths = ImmutableSet.copyOf(getTransitiveClasspathEntries().values());
     }
 
-    String outputFile = getOutputFile();
-    Step jar = new JarDirectoryStep(
-        newPathInstance(outputFile), includePaths, mainClass, manifestFile);
+    Path outputFile = getOutputFile();
+    Step jar = new JarDirectoryStep(outputFile, includePaths, mainClass, manifestFile);
     commands.add(jar);
 
     return commands.build();
@@ -161,17 +161,18 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
     return Classpaths.getClasspathEntries(getDeps());
   }
 
-  private String getOutputDirectory() {
-    return String.format("%s/%s", BuckConstant.GEN_DIR, getBuildTarget().getBasePath());
+  private Path getOutputDirectory() {
+    return MorePaths.newPathInstance(
+        String.format("%s/%s", BuckConstant.GEN_DIR, getBuildTarget().getBasePath()));
   }
 
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     return getOutputFile();
   }
 
-  String getOutputFile() {
-    return String.format("%s/%s.jar", getOutputDirectory(), getBuildTarget().getShortName());
+  Path getOutputFile() {
+    return getOutputDirectory().resolve(String.format("%s.jar", getBuildTarget().getShortName()));
   }
 
   public static Builder newJavaBinaryRuleBuilder(AbstractBuildRuleBuilderParams params) {
@@ -185,14 +186,14 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
         getBuildTarget().getFullyQualifiedName());
 
     return String.format("java -jar %s",
-        projectFilesystem.getPathRelativiser().apply(newPathInstance(getOutputFile())));
+        projectFilesystem.getPathRelativiser().apply(getOutputFile()));
   }
 
   public static class Builder extends AbstractBuildRuleBuilder<JavaBinaryRule> {
 
     private String mainClass;
     private String manifestFile;
-    private String metaInfDirectory;
+    private Path metaInfDirectory;
 
     private Builder(AbstractBuildRuleBuilderParams params) {
       super(params);
@@ -230,7 +231,7 @@ public class JavaBinaryRule extends DoNotUseAbstractBuildable implements BinaryB
     }
 
     public Builder setMetaInfDirectory(String metaInfDirectory) {
-      this.metaInfDirectory = metaInfDirectory;
+      this.metaInfDirectory = MorePaths.newPathInstance(metaInfDirectory);
       return this;
     }
   }

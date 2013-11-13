@@ -17,6 +17,7 @@
 package com.facebook.buck.rules;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import javax.annotation.Nullable;
 
@@ -32,7 +33,7 @@ public abstract class AbstractBuildable implements Buildable {
 
   @Nullable
   @Override
-  public abstract String getPathToOutputFile();
+  public abstract Path getPathToOutputFile();
 
   @Override
   public RuleKey.Builder appendDetailsToRuleKey(RuleKey.Builder builder) throws IOException {

@@ -219,7 +219,7 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
               outputClasspathEntries = getTransitiveClasspathEntries();
             } else if (outputJar.isPresent()) {
               outputClasspathEntries = ImmutableSetMultimap.<JavaLibraryRule, String>builder()
-                  .put(DefaultJavaLibraryRule.this, getPathToOutputFile())
+                  .put(DefaultJavaLibraryRule.this, getPathToOutputFile().toString())
                   .build();
             } else {
               outputClasspathEntries = ImmutableSetMultimap.of();
@@ -247,7 +247,7 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
 
             // Only add ourselves to the classpath if there's a jar to be built.
             if (outputJar.isPresent()) {
-              classpathEntries.putAll(DefaultJavaLibraryRule.this, getPathToOutputFile());
+              classpathEntries.putAll(DefaultJavaLibraryRule.this, getPathToOutputFile().toString());
             }
 
             return classpathEntries.build();
@@ -788,12 +788,10 @@ public class DefaultJavaLibraryRule extends DoNotUseAbstractBuildable
     }
   }
 
+  @Nullable
   @Override
-  public String getPathToOutputFile() {
-    if (outputJar.isPresent()) {
-      return outputJar.get().toString();
-    }
-    return null;
+  public Path getPathToOutputFile() {
+    return outputJar.orNull();
   }
 
   public static Builder newJavaLibraryRuleBuilder(AbstractBuildRuleBuilderParams params) {

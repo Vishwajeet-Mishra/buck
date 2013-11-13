@@ -37,6 +37,7 @@ import com.facebook.buck.rules.Sha1HashCode;
 import com.facebook.buck.step.AbstractExecutionStep;
 import com.facebook.buck.step.ExecutionContext;
 import com.facebook.buck.step.Step;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -54,6 +55,7 @@ import com.google.common.io.InputSupplier;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -66,7 +68,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
 
   private final static BuildableProperties OUTPUT_TYPE = new BuildableProperties(LIBRARY);
 
-  private final String binaryJar;
+  private final Path binaryJar;
   private final Optional<String> sourceJar;
   private final Optional<String> javadocUrl;
   private final Supplier<ImmutableSetMultimap<JavaLibraryRule, String>>
@@ -83,7 +85,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
   private Sha1HashCode abiKey;
 
   PrebuiltJarRule(BuildRuleParams buildRuleParams,
-      String classesJar,
+      Path classesJar,
       Optional<String> sourceJar,
       Optional<String> javadocUrl) {
     super(buildRuleParams);
@@ -97,7 +99,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
           public ImmutableSetMultimap<JavaLibraryRule, String> get() {
             ImmutableSetMultimap.Builder<JavaLibraryRule, String> classpathEntries =
                 ImmutableSetMultimap.builder();
-            classpathEntries.put(PrebuiltJarRule.this, getBinaryJar());
+            classpathEntries.put(PrebuiltJarRule.this, getBinaryJar().toString());
             classpathEntries.putAll(Classpaths.getClasspathEntries(getDeps()));
             return classpathEntries.build();
           }
@@ -109,7 +111,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
           public ImmutableSetMultimap<JavaLibraryRule, String> get() {
             ImmutableSetMultimap.Builder<JavaLibraryRule, String> classpathEntries =
                 ImmutableSetMultimap.builder();
-            classpathEntries.put(PrebuiltJarRule.this, getBinaryJar());
+            classpathEntries.put(PrebuiltJarRule.this, getBinaryJar().toString());
             return classpathEntries.build();
           }
         });
@@ -125,7 +127,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
     return OUTPUT_TYPE;
   }
 
-  public String getBinaryJar() {
+  public Path getBinaryJar() {
     return binaryJar;
   }
 
@@ -139,7 +141,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
 
   @Override
   public Iterable<String> getInputsToCompareToOutput() {
-    return ImmutableList.of(getBinaryJar());
+    return ImmutableList.of(getBinaryJar().toString());
   }
 
   @Override
@@ -178,7 +180,9 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
 
   @Override
   public ImmutableSetMultimap<JavaLibraryRule, String> getOutputClasspathEntries() {
-    return ImmutableSetMultimap.<JavaLibraryRule, String>builder().put(this, getBinaryJar()).build();
+    return ImmutableSetMultimap.<JavaLibraryRule, String>builder()
+        .put(this, getBinaryJar().toString())
+        .build();
   }
 
   @Override
@@ -229,14 +233,14 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
   }
 
   @Override
-  public String getPathToOutputFile() {
+  public Path getPathToOutputFile() {
     return getBinaryJar();
   }
 
   @Override
   public RuleKey.Builder appendToRuleKey(RuleKey.Builder builder) throws IOException {
     return super.appendToRuleKey(builder)
-        .set("binaryJar", binaryJar)
+        .setInput("binaryJar", binaryJar)
         .set("sourceJar", sourceJar)
         .set("javadocUrl", javadocUrl);
   }
@@ -247,7 +251,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
 
   public static class Builder extends AbstractBuildRuleBuilder<PrebuiltJarRule> {
 
-    private String binaryJar;
+    private Path binaryJar;
     private Optional<String> sourceJar = Optional.absent();
     private Optional<String> javadocUrl = Optional.absent();
 
@@ -282,7 +286,7 @@ public class PrebuiltJarRule extends DoNotUseAbstractBuildable
     }
 
     public Builder setBinaryJar(String binaryJar) {
-      this.binaryJar = binaryJar;
+      this.binaryJar = MorePaths.newPathInstance(binaryJar);
       return this;
     }
 
