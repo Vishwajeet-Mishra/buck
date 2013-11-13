@@ -30,18 +30,20 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class RobolectricTestRuleTest {
 
   private class ResourceRule implements HasAndroidResourceDeps {
-    private final String resourceDirectory;
+    private final Path resourceDirectory;
 
     public ResourceRule(String resourceDirectory) {
-      this.resourceDirectory = resourceDirectory;
+      this.resourceDirectory = Paths.get(resourceDirectory);
     }
 
     @Override
-    public String getPathToTextSymbolsFile() {
+    public Path getPathToTextSymbolsFile() {
       return null;
     }
 
@@ -51,7 +53,7 @@ public class RobolectricTestRuleTest {
     }
 
     @Override
-    public String getRes() {
+    public Path getRes() {
       return resourceDirectory;
     }
   }
@@ -76,7 +78,7 @@ public class RobolectricTestRuleTest {
 
     String result = testRule.getRobolectricResourceDirectories(resDeps);
     for (HasAndroidResourceDeps dep : resDeps) {
-      assertTrue(result.contains(dep.getRes()));
+      assertTrue(result.contains(dep.getRes().toString()));
     }
   }
 

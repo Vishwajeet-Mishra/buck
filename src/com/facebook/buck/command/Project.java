@@ -46,6 +46,7 @@ import com.facebook.buck.util.BuckConstant;
 import com.facebook.buck.util.Console;
 import com.facebook.buck.util.HumanReadableException;
 import com.facebook.buck.util.KeystoreProperties;
+import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProcessExecutor;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -872,14 +873,14 @@ public class Project {
    * @param pathRelativeToProjectRoot if {@code null}, then this method returns {@code null}
    * @param target
    */
-  private static String createRelativePath(@Nullable String pathRelativeToProjectRoot,
+  private static String createRelativePath(@Nullable Path pathRelativeToProjectRoot,
       BuildTarget target) {
     if (pathRelativeToProjectRoot == null) {
       return null;
     }
-    String directoryPath = target.getBasePath();
+    Path directoryPath = MorePaths.newPathInstance(target.getBasePath());
     Preconditions.checkArgument(pathRelativeToProjectRoot.startsWith(directoryPath));
-    return pathRelativeToProjectRoot.substring(directoryPath.length());
+    return "/" + MorePaths.getRelativePath(pathRelativeToProjectRoot, directoryPath).toString();
   }
 
   private void writeJsonConfig(File jsonTempFile, List<Module> modules) throws IOException {

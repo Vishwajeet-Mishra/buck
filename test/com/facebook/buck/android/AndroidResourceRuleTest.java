@@ -35,6 +35,8 @@ import com.google.common.collect.ImmutableSortedSet;
 
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 
 public class AndroidResourceRuleTest {
 
@@ -48,11 +50,11 @@ public class AndroidResourceRuleTest {
         ImmutableSortedSet.<BuildRule>of());
     AndroidResourceRule androidResourceRule = new AndroidResourceRule(
         buildRuleParams,
-        "java/src/com/facebook/base/res",
+        Paths.get("java/src/com/facebook/base/res"),
         ImmutableSortedSet.of(
-            "java/src/com/facebook/base/res/drawable/E.xml",
-            "java/src/com/facebook/base/res/drawable/A.xml",
-            "java/src/com/facebook/base/res/drawable/C.xml"),
+            Paths.get("java/src/com/facebook/base/res/drawable/E.xml"),
+            Paths.get("java/src/com/facebook/base/res/drawable/A.xml"),
+            Paths.get("java/src/com/facebook/base/res/drawable/C.xml")),
         "com.facebook",
         "java/src/com/facebook/base/assets",
         ImmutableSortedSet.of(

@@ -35,14 +35,19 @@ import com.facebook.buck.step.Step;
 import com.facebook.buck.step.fs.MakeCleanDirectoryStep;
 import com.facebook.buck.util.BuckConstant;
 import com.facebook.buck.util.HumanReadableException;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -68,19 +73,19 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
   private final static BuildableProperties PROPERTIES = new BuildableProperties(ANDROID, LIBRARY);
 
   /** {@link Function} that invokes {@link #getRes()} on an {@link AndroidResourceRule}. */
-  private static final Function<HasAndroidResourceDeps, String> GET_RES_FOR_RULE =
-      new Function<HasAndroidResourceDeps, String>() {
+  private static final Function<HasAndroidResourceDeps, Path> GET_RES_FOR_RULE =
+      new Function<HasAndroidResourceDeps, Path>() {
     @Override
     @Nullable
-    public String apply(HasAndroidResourceDeps rule) {
+    public Path apply(HasAndroidResourceDeps rule) {
       return rule.getRes();
     }
   };
 
   @Nullable
-  private final String res;
+  private final Path res;
 
-  private final ImmutableSortedSet<String> resSrcs;
+  private final ImmutableSortedSet<Path> resSrcs;
 
   @Nullable
   private String rDotJavaPackage;
@@ -91,17 +96,17 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
   private final ImmutableSortedSet<String> assetsSrcs;
 
   @Nullable
-  private final String pathToTextSymbolsDir;
+  private final Path pathToTextSymbolsDir;
 
   @Nullable
-  private final String pathToTextSymbolsFile;
+  private final Path pathToTextSymbolsFile;
 
   @Nullable
   private final String manifestFile;
 
   protected AndroidResourceRule(BuildRuleParams buildRuleParams,
-      @Nullable String res,
-      ImmutableSortedSet<String> resSrcs,
+      @Nullable Path res,
+      ImmutableSortedSet<Path> resSrcs,
       @Nullable String rDotJavaPackage,
       @Nullable String assets,
       ImmutableSortedSet<String> assetsSrcs,
@@ -119,11 +124,11 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
       pathToTextSymbolsFile = null;
     } else {
       BuildTarget buildTarget = buildRuleParams.getBuildTarget();
-      pathToTextSymbolsDir = String.format("%s/%s__%s_text_symbols__",
+      pathToTextSymbolsDir = MorePaths.newPathInstance(String.format("%s/%s__%s_text_symbols__",
           BuckConstant.GEN_DIR,
           buildTarget.getBasePathWithSlash(),
-          buildTarget.getShortName());
-      pathToTextSymbolsFile = pathToTextSymbolsDir + "/R.txt";
+          buildTarget.getShortName()));
+      pathToTextSymbolsFile = pathToTextSymbolsDir.resolve("/R.txt");
     }
   }
 
@@ -132,7 +137,10 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
     ImmutableList.Builder<String> inputsToConsiderForCachingPurposes = ImmutableList.builder();
 
     // This should include the res/ and assets/ folders.
-    inputsToConsiderForCachingPurposes.addAll(resSrcs);
+    inputsToConsiderForCachingPurposes.addAll(
+        FluentIterable.from(resSrcs)
+            .transform(Functions.toStringFunction())
+            .toSortedSet(Ordering.natural()));
     inputsToConsiderForCachingPurposes.addAll(assetsSrcs);
 
     // manifest file is optional.
@@ -145,7 +153,7 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
 
   @Override
   @Nullable
-  public String getRes() {
+  public Path getRes() {
     return res;
   }
 
@@ -173,7 +181,7 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
     // Searching through the deps, find any additional res directories to pass to aapt.
     ImmutableList<HasAndroidResourceDeps> androidResourceDeps = UberRDotJavaUtil.getAndroidResourceDeps(
         this, context.getDependencyGraph());
-    Set<String> resDirectories = ImmutableSet.copyOf(
+    Set<Path> resDirectories = ImmutableSet.copyOf(
         Iterables.transform(androidResourceDeps, GET_RES_FOR_RULE));
 
     GenRDotJavaStep genRDotJava = new GenRDotJavaStep(
@@ -189,7 +197,7 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
   @Nullable
   public String getPathToOutputFile() {
     if (pathToTextSymbolsFile != null) {
-      return pathToTextSymbolsFile;
+      return pathToTextSymbolsFile.toString();
     } else {
       return null;
     }
@@ -197,7 +205,7 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
 
   @Override
   @Nullable
-  public String getPathToTextSymbolsFile() {
+  public Path getPathToTextSymbolsFile() {
     return pathToTextSymbolsFile;
   }
 
@@ -224,7 +232,7 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
     // TODO(#2493457): This rule uses the aapt binary (part of the Android SDK), so the RuleKey
     // should incorporate which version of aapt is used.
     return super.appendToRuleKey(builder)
-        .set("res", resSrcs)
+        .setInputs("res", resSrcs.iterator())
         .set("rDotJavaPackage", rDotJavaPackage)
         .set("assets", assetsSrcs)
         .set("manifestFile", manifestFile);
@@ -236,9 +244,9 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
 
   public static class Builder extends AbstractBuildRuleBuilder<AndroidResourceRule> {
     @Nullable
-    private String res = null;
+    private Path res = null;
 
-    private ImmutableSortedSet.Builder<String> resSrcs = ImmutableSortedSet.naturalOrder();
+    private ImmutableSortedSet.Builder<Path> resSrcs = ImmutableSortedSet.naturalOrder();
 
     @Nullable
     private String rDotJavaPackage = null;
@@ -291,12 +299,12 @@ public class AndroidResourceRule extends DoNotUseAbstractBuildable implements Ha
     }
 
     public Builder setRes(String res) {
-      this.res = res;
+      this.res = MorePaths.newPathInstance(res);
       return this;
     }
 
     public Builder addResSrc(String resSrc) {
-      this.resSrcs.add(resSrc);
+      this.resSrcs.add(MorePaths.newPathInstance(resSrc));
       return this;
     }
 

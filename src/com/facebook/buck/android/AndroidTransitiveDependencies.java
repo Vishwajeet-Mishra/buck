@@ -17,12 +17,14 @@ package com.facebook.buck.android;
 
 import com.google.common.collect.ImmutableSet;
 
+import java.nio.file.Path;
+
 public class AndroidTransitiveDependencies {
   public final ImmutableSet<String> assetsDirectories;
   public final ImmutableSet<String> nativeLibsDirectories;
   public final ImmutableSet<String> nativeLibAssetsDirectories;
   public final ImmutableSet<String> manifestFiles;
-  public final ImmutableSet<String> resDirectories;
+  public final ImmutableSet<Path> resDirectories;
   public final ImmutableSet<String> rDotJavaPackages;
   public final ImmutableSet<String> proguardConfigs;
 
@@ -30,7 +32,7 @@ public class AndroidTransitiveDependencies {
                                        ImmutableSet<String> nativeLibsDirectories,
                                        ImmutableSet<String> nativeLibAssetsDirectories,
                                        ImmutableSet<String> manifestFiles,
-                                       ImmutableSet<String> resDirectories,
+                                       ImmutableSet<Path> resDirectories,
                                        ImmutableSet<String> rDotJavaPackages,
                                        ImmutableSet<String> proguardConfigs) {
     this.assetsDirectories = ImmutableSet.copyOf(assetsDirectories);

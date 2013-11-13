@@ -29,6 +29,7 @@ import com.facebook.buck.step.Step;
 import com.facebook.buck.step.fs.MakeCleanDirectoryStep;
 import com.facebook.buck.step.fs.WriteFileStep;
 import com.facebook.buck.util.BuckConstant;
+import com.facebook.buck.util.MorePaths;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -39,6 +40,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -73,12 +75,12 @@ public class UberRDotJavaUtil {
    * will be written to {@link #getPathToCompiledRDotJavaFiles(BuildTarget)}.
    */
   public static void generateRDotJavaFiles(
-      Set<String> resDirectories,
+      Set<Path> resDirectories,
       Set<String> rDotJavaPackages,
       BuildTarget buildTarget,
       ImmutableList.Builder<Step> commands) {
     // Create the path where the R.java files will be generated.
-    String rDotJavaSrc = getPathToGeneratedRDotJavaSrcFiles(buildTarget);
+    Path rDotJavaSrc = getPathToGeneratedRDotJavaSrcFiles(buildTarget);
     commands.add(new MakeCleanDirectoryStep(rDotJavaSrc));
 
     // Generate the R.java files.
@@ -105,11 +107,11 @@ public class UberRDotJavaUtil {
     commands.add(javac);
   }
 
-  public static String getPathToGeneratedRDotJavaSrcFiles(BuildTarget buildTarget) {
-    return String.format("%s/%s__%s_uber_rdotjava_src__",
+  public static Path getPathToGeneratedRDotJavaSrcFiles(BuildTarget buildTarget) {
+    return MorePaths.newPathInstance(String.format("%s/%s__%s_uber_rdotjava_src__",
         BuckConstant.BIN_DIR,
         buildTarget.getBasePathWithSlash(),
-        buildTarget.getShortName());
+        buildTarget.getShortName()));
   }
 
   public static String getPathToCompiledRDotJavaFiles(BuildTarget buildTarget) {
@@ -194,16 +196,16 @@ public class UberRDotJavaUtil {
      * An {@link Iterator} over this collection will reflect the order of the original list of
      * {@link AndroidResourceRule}s that were specified.
      */
-    public final ImmutableSet<String> resDirectories;
+    public final ImmutableSet<Path> resDirectories;
 
     public final ImmutableSet<String> rDotJavaPackages;
 
     @Beta
     public AndroidResourceDetails(ImmutableList<HasAndroidResourceDeps> androidResourceDeps) {
-      ImmutableSet.Builder<String> resDirectoryBuilder = ImmutableSet.builder();
+      ImmutableSet.Builder<Path> resDirectoryBuilder = ImmutableSet.builder();
       ImmutableSet.Builder<String> rDotJavaPackageBuilder = ImmutableSet.builder();
       for (HasAndroidResourceDeps androidResource : androidResourceDeps) {
-        String resDirectory = androidResource.getRes();
+        Path resDirectory = androidResource.getRes();
         if (resDirectory != null) {
           resDirectoryBuilder.add(resDirectory);
           rDotJavaPackageBuilder.add(androidResource.getRDotJavaPackage());
@@ -239,7 +241,7 @@ public class UberRDotJavaUtil {
       commands.add(new WriteFileStep(javaCode, rDotJavaFile));
       javaSourceFilePaths.add(rDotJavaFile);
     } else {
-      Map<String, String> symbolsFileToRDotJavaPackage = Maps.newHashMap();
+      Map<Path, String> symbolsFileToRDotJavaPackage = Maps.newHashMap();
       for (HasAndroidResourceDeps res : androidResourceDeps) {
         String rDotJavaPackage = res.getRDotJavaPackage();
         symbolsFileToRDotJavaPackage.put(res.getPathToTextSymbolsFile(), rDotJavaPackage);

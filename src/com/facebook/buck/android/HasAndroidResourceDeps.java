@@ -16,6 +16,8 @@
 
 package com.facebook.buck.android;
 
+import java.nio.file.Path;
+
 /**
  * Indicates that this class may have android resources that should be packaged into an APK.
  */
@@ -28,10 +30,10 @@ public interface HasAndroidResourceDeps {
   /**
    * @return path to a temporary directory for storing text symbols.
    */
-  String getPathToTextSymbolsFile();
+  Path getPathToTextSymbolsFile();
 
   /**
    * @return path to a directory containing Android resources.
    */
-  String getRes();
+  Path getRes();
 }

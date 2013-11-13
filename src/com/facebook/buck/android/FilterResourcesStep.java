@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class FilterResourcesStep implements Step {
   static final Pattern NON_ENGLISH_STRING_PATH = Pattern.compile(
       "(\\b|.*/)res/values-.+/strings.xml", Pattern.CASE_INSENSITIVE);
 
-  private final ImmutableBiMap<String, String> inResDirToOutResDirMap;
+  private final ImmutableBiMap<Path, Path> inResDirToOutResDirMap;
   private final boolean filterDrawables;
   private final boolean filterStrings;
   private final FilteredDirectoryCopier filteredDirectoryCopier;
@@ -97,7 +98,7 @@ public class FilterResourcesStep implements Step {
    */
   @VisibleForTesting
   FilterResourcesStep(
-      ImmutableBiMap<String, String> inResDirToOutResDirMap,
+      ImmutableBiMap<Path, Path> inResDirToOutResDirMap,
       boolean filterDrawables,
       boolean filterStrings,
       FilteredDirectoryCopier filteredDirectoryCopier,
@@ -137,7 +138,7 @@ public class FilterResourcesStep implements Step {
     return nonEnglishStringFilesBuilder.build();
   }
 
-  public ImmutableSet<String> getOutputResourceDirs() {
+  public ImmutableSet<Path> getOutputResourceDirs() {
     return inResDirToOutResDirMap.values();
   }
 
@@ -195,7 +196,7 @@ public class FilterResourcesStep implements Step {
   }
 
   @VisibleForTesting
-  ImmutableBiMap<String, String> getInResDirToOutResDirMap() {
+  ImmutableBiMap<Path, Path> getInResDirToOutResDirMap() {
     return inResDirToOutResDirMap;
   }
 
@@ -255,7 +256,7 @@ public class FilterResourcesStep implements Step {
   }
 
   public interface DrawableFinder {
-    public Set<String> findDrawables(Iterable<String> dirs) throws IOException;
+    public Set<String> findDrawables(Iterable<Path> dirs) throws IOException;
   }
 
   public static class DefaultDrawableFinder implements DrawableFinder {
@@ -267,10 +268,10 @@ public class FilterResourcesStep implements Step {
     }
 
     @Override
-    public Set<String> findDrawables(Iterable<String> dirs) throws IOException {
+    public Set<String> findDrawables(Iterable<Path> dirs) throws IOException {
       final ImmutableSet.Builder<String> drawableBuilder = ImmutableSet.builder();
-      for (String dir : dirs) {
-        new DirectoryTraversal(new File(dir)) {
+      for (Path dir : dirs) {
+        new DirectoryTraversal(dir.toFile()) {
           @Override
           public void visit(File file, String relativePath) {
             if (DRAWABLE_PATH_PATTERN.matcher(relativePath).matches()) {
@@ -364,14 +365,14 @@ public class FilterResourcesStep implements Step {
 
   public static class Builder {
 
-    private ImmutableBiMap<String, String> inResDirToOutResDirMap;
+    private ImmutableBiMap<Path, Path> inResDirToOutResDirMap;
     private ResourceFilter resourceFilter;
     private boolean filterStrings = false;
 
     private Builder() {
     }
 
-    public Builder setInResToOutResDirMap(ImmutableBiMap<String, String> inResDirToOutResDirMap) {
+    public Builder setInResToOutResDirMap(ImmutableBiMap<Path, Path> inResDirToOutResDirMap) {
       this.inResDirToOutResDirMap = inResDirToOutResDirMap;
       return this;
     }

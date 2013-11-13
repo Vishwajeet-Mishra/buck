@@ -38,7 +38,7 @@ import java.util.Set;
 public class AaptStep extends ShellStep {
 
   private final Path androidManifest;
-  private final Set<String> resDirectories;
+  private final Set<Path> resDirectories;
   private final Optional<Path> assetsDirectory;
   private final String pathToOutputApkFile;
   private final Set<Path> pathsToRawFilesDirs;
@@ -48,7 +48,7 @@ public class AaptStep extends ShellStep {
 
   public AaptStep(
       Path androidManifest,
-      Set<String> resDirectories,
+      Set<Path> resDirectories,
       Optional<Path> assetsDirectory,
       String pathToOutputApkFile,
       Set<Path> pathsToRawFilesDirs,
@@ -92,8 +92,8 @@ public class AaptStep extends ShellStep {
 
     // Include all of the res/ directories.
     builder.add("--auto-add-overlay");
-    for (String res : resDirectories) {
-      builder.add("-S", res);
+    for (Path res : resDirectories) {
+      builder.add("-S", res.toString());
     }
 
     // Include the assets/ directory, if any.

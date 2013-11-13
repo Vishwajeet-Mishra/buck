@@ -38,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.SortedSet;
@@ -48,7 +49,7 @@ public class MergeAndroidResourcesStep implements Step {
 
   private static final Pattern TEXT_SYMBOLS_LINE = Pattern.compile("(\\S+) (\\S+) (\\S+) (.+)");
 
-  private final ImmutableMap<String, String> symbolsFileToRDotJavaPackage;
+  private final ImmutableMap<Path, String> symbolsFileToRDotJavaPackage;
   private final String pathToGeneratedJavaFiles;
 
   /**
@@ -62,7 +63,7 @@ public class MergeAndroidResourcesStep implements Step {
    *     directory should exist and be empty before this command is run.
    */
   public MergeAndroidResourcesStep(
-      Map<String, String> symbolsFileToRDotJavaPackage,
+      Map<Path, String> symbolsFileToRDotJavaPackage,
       String pathToGeneratedJavaFiles) {
     this.symbolsFileToRDotJavaPackage = ImmutableMap.copyOf(symbolsFileToRDotJavaPackage);
     this.pathToGeneratedJavaFiles = Preconditions.checkNotNull(pathToGeneratedJavaFiles);
@@ -110,11 +111,11 @@ public class MergeAndroidResourcesStep implements Step {
     // though Robolectric doesn't read resources.arsc, it does assert that all the R.java resource
     // ids are unique.  This forces us to re-enumerate new unique ids.
     SortedSetMultimap<String, Resource> rDotJavaPackageToResources = sortSymbols(
-        new Function<String, Readable>() {
+        new Function<Path, Readable>() {
           @Override
-          public Readable apply(String pathToFile) {
+          public Readable apply(Path pathToFile) {
             try {
-              return new FileReader(pathToFile);
+              return new FileReader(pathToFile.toFile());
             } catch (FileNotFoundException e) {
               throw new RuntimeException(e);
             }
@@ -149,16 +150,16 @@ public class MergeAndroidResourcesStep implements Step {
 
   @VisibleForTesting
   static SortedSetMultimap<String, Resource> sortSymbols(
-      Function<String, Readable> filePathToReadable,
-      Map<String, String> symbolsFileToRDotJavaPackage,
+      Function<Path, Readable> filePathToReadable,
+      Map<Path, String> symbolsFileToRDotJavaPackage,
       boolean reenumerate) {
     // If we're reenumerating, start at 0x7f01001 so that the resulting file is human readable.
     // This value range (0x7f010001 - ...) is easier to spot as an actual resource id instead of
     // other values in styleable which can be enumerated integers starting at 0.
     IntEnumerator enumerator = reenumerate ? new IntEnumerator(0x7f01001) : null;
     SortedSetMultimap<String, Resource> rDotJavaPackageToSymbolsFiles = TreeMultimap.create();
-    for (Map.Entry<String, String> entry : symbolsFileToRDotJavaPackage.entrySet()) {
-      String symbolsFile = entry.getKey();
+    for (Map.Entry<Path, String> entry : symbolsFileToRDotJavaPackage.entrySet()) {
+      Path symbolsFile = entry.getKey();
       String packageName = entry.getValue();
 
       // Read the symbols file and parse each line as a Resource.

@@ -24,7 +24,6 @@ import com.facebook.buck.android.FilterResourcesStep.ImageScaler;
 import com.facebook.buck.step.ExecutionContext;
 import com.facebook.buck.util.FilteredDirectoryCopier;
 import com.facebook.buck.util.Filters;
-import com.facebook.buck.util.MorePaths;
 import com.facebook.buck.util.ProcessExecutor;
 import com.facebook.buck.util.ProjectFilesystem;
 import com.facebook.buck.util.Verbosity;
@@ -40,31 +39,32 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 public class FilterResourcesStepTest {
 
-  private final static String first = "/first-path/res";
-  private final static String second = "/second-path/res";
-  private final static String third = "/third-path/res";
+  private final static Path first = Paths.get("/first-path/res");
+  private final static Path second = Paths.get("/second-path/res");
+  private final static Path third = Paths.get("/third-path/res");
 
-  private final static ImmutableBiMap<String, String> inResDirToOutResDirMap =
+  private final static ImmutableBiMap<Path, Path> inResDirToOutResDirMap =
       ImmutableBiMap.of(
-          first, "/dest/1",
-          second, "/dest/2",
-          third, "/dest/3");
+          first, Paths.get("/dest/1"),
+          second, Paths.get("/dest/2"),
+          third, Paths.get("/dest/3"));
   private static Set<String> qualifiers = ImmutableSet.of("mdpi", "hdpi", "xhdpi");
   private final String targetDensity = "mdpi";
-  private final File baseDestination = new File("/dest");
+  private final Path baseDestination = Paths.get("/dest");
 
   private final String scaleSource = getDrawableFile(first, "xhdpi", "other.png");
   private final String scaleDest = getDrawableFile(first, "mdpi", "other.png");
 
-  private String getDrawableFile(String dir, String qualifier, String filename) {
-    return MorePaths.newPathInstance(
-        new File(dir, String.format("drawable-%s/%s", qualifier, filename))).toString();
+  private String getDrawableFile(Path dir, String qualifier, String filename) {
+    return dir.resolve(String.format("drawable-%s/%s", qualifier, filename)).toString();
   }
 
   @Test
@@ -102,7 +102,7 @@ public class FilterResourcesStepTest {
     // Create mock FilteredDirectoryCopier to find what we're calling on it.
     FilteredDirectoryCopier copier = EasyMock.createMock(FilteredDirectoryCopier.class);
     // We'll want to see what the filtering command passes to the copier.
-    Capture<Map<String, String>> dirMapCapture = new Capture<>();
+    Capture<Map<Path, Path>> dirMapCapture = new Capture<>();
     Capture<Predicate<File>> predCapture = new Capture<>();
     copier.copyDirs(EasyMock.capture(dirMapCapture),
         EasyMock.capture(predCapture));
@@ -135,7 +135,7 @@ public class FilterResourcesStepTest {
         @Override
         public Set<String> answer() throws Throwable {
           ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-          for (String dir : (Iterable<String>) EasyMock.getCurrentArguments()[0]) {
+          for (Path dir : (Iterable<Path>) EasyMock.getCurrentArguments()[0]) {
             for (String qualifier : qualifiers) {
               builder.add(getDrawableFile(dir, qualifier, "some.png"));
             }
@@ -156,7 +156,7 @@ public class FilterResourcesStepTest {
         @Override
         public Set<String> answer() throws Throwable {
           ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-          for (String dir : (Iterable<String>) EasyMock.getCurrentArguments()[0]) {
+          for (Path dir : (Iterable<Path>) EasyMock.getCurrentArguments()[0]) {
             builder.add(getDrawableFile(dir, targetDensity, "some.png"));
           }
 
@@ -168,15 +168,15 @@ public class FilterResourcesStepTest {
     EasyMock.replay(finder);
 
     // We'll use this to verify the source->destination mappings created by the command.
-    ImmutableMap.Builder<String, String> dirMapBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<Path, Path> dirMapBuilder = ImmutableMap.builder();
 
-    Iterator<String> destIterator = inResDirToOutResDirMap.values().iterator();
-    for (String dir : inResDirToOutResDirMap.keySet()) {
-      String nextDestination = destIterator.next();
+    Iterator<Path> destIterator = inResDirToOutResDirMap.values().iterator();
+    for (Path dir : inResDirToOutResDirMap.keySet()) {
+      Path nextDestination = destIterator.next();
       dirMapBuilder.put(dir, nextDestination);
 
       // Verify that destination path requirements are observed.
-      assertEquals(baseDestination, new File(nextDestination).getParentFile());
+      assertEquals(baseDestination, nextDestination.getParent());
     }
 
     // Execute command.

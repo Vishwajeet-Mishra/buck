@@ -118,7 +118,7 @@ public class AndroidBinaryRuleTest {
         dexTransitiveDependencies.classpathEntriesToDex,
         transitiveDependencies.proguardConfigs,
         commands,
-        ImmutableSet.<String>of());
+        ImmutableSet.<Path>of());
     verify(context);
 
     MakeCleanDirectoryStep expectedClean =
@@ -128,7 +128,7 @@ public class AndroidBinaryRuleTest {
         new GenProGuardConfigStep(
             newPathInstance(
                 "buck-out/bin/java/src/com/facebook/base/__manifest_apk__/AndroidManifest.xml"),
-            ImmutableSet.<String>of(),
+            ImmutableSet.<Path>of(),
             "buck-out/gen/java/src/com/facebook/base/.proguard/apk/proguard.txt");
 
     Step expectedObfuscation =
@@ -382,11 +382,14 @@ public class AndroidBinaryRuleTest {
     if (!Strings.isNullOrEmpty(resDirectory) || !Strings.isNullOrEmpty(assetDirectory)) {
       BuildTarget resourceOnebuildTarget =
           BuildTargetFactory.newInstance(buildTarget + "_resources");
-      AndroidResourceRule androidResourceRule = ruleResolver.buildAndAddToIndex(
-          AndroidResourceRule.newAndroidResourceRuleBuilder(new FakeAbstractBuildRuleBuilderParams())
+      AndroidResourceRule.Builder builder = AndroidResourceRule.newAndroidResourceRuleBuilder(
+          new FakeAbstractBuildRuleBuilderParams())
           .setAssetsDirectory(assetDirectory)
-          .setRes(resDirectory)
-          .setBuildTarget(resourceOnebuildTarget));
+          .setBuildTarget(resourceOnebuildTarget);
+      if (resDirectory != null) {
+        builder.setRes(resDirectory);
+      }
+      AndroidResourceRule androidResourceRule = ruleResolver.buildAndAddToIndex(builder);
 
       androidLibraryRuleBuilder.addDep(androidResourceRule.getBuildTarget());
     }
@@ -581,14 +584,14 @@ public class AndroidBinaryRuleTest {
         .setResourceCompressionMode("enabled_with_strings_as_assets");
 
     AndroidBinaryRule buildRule = resolver.buildAndAddToIndex(builder);
-    Set<String> resourceDirectories = ImmutableSet.of("one", "two");
+    Set<Path> resourceDirectories = ImmutableSet.of(Paths.get("one"), Paths.get("two"));
 
     FilterResourcesStep filterResourcesStep = buildRule.getFilterResourcesStep(resourceDirectories);
 
     assertEquals(
         ImmutableSet.of(
-            "buck-out/bin/__filtered__target__/0",
-            "buck-out/bin/__filtered__target__/1"),
+            Paths.get("buck-out/bin/__filtered__target__/0"),
+            Paths.get("buck-out/bin/__filtered__target__/1")),
         filterResourcesStep.getOutputResourceDirs());
   }
 

@@ -453,16 +453,16 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
    * separately as assets (and not bundled together into the {@code resources.arsc} file).
    */
   @VisibleForTesting
-  FilterResourcesStep getFilterResourcesStep(Set<String> resourceDirectories) {
-    ImmutableBiMap.Builder<String, String> filteredResourcesDirMapBuilder = ImmutableBiMap.builder();
+  FilterResourcesStep getFilterResourcesStep(Set<Path> resourceDirectories) {
+    ImmutableBiMap.Builder<Path, Path> filteredResourcesDirMapBuilder = ImmutableBiMap.builder();
     Path resDestinationBasePath = getBinPath("__filtered__%s__");
     int count = 0;
-    for (String resDir : resourceDirectories) {
+    for (Path resDir : resourceDirectories) {
       filteredResourcesDirMapBuilder.put(resDir,
-          resDestinationBasePath.resolve(String.valueOf(count++)).toString());
+          resDestinationBasePath.resolve(String.valueOf(count++)));
     }
 
-    ImmutableBiMap<String, String> resSourceToDestDirMap = filteredResourcesDirMapBuilder.build();
+    ImmutableBiMap<Path, Path> resSourceToDestDirMap = filteredResourcesDirMapBuilder.build();
     FilterResourcesStep.Builder filterResourcesStepBuilder = FilterResourcesStep.builder()
         .setInResToOutResDirMap(resSourceToDestDirMap)
         .setResourceFilter(resourceFilter);
@@ -490,7 +490,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
     final AndroidDexTransitiveDependencies dexTransitiveDependencies =
         findDexTransitiveDependencies(context.getDependencyGraph());
 
-    Set<String> resDirectories = transitiveDependencies.resDirectories;
+    Set<Path> resDirectories = transitiveDependencies.resDirectories;
     Set<String> rDotJavaPackages = transitiveDependencies.rDotJavaPackages;
 
     FilterResourcesStep filterResourcesStep = null;
@@ -520,7 +520,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
         commands.add(new MakeCleanDirectoryStep(tmpStringsDirPath));
         commands.add(new CompileStringsStep(
             filterResourcesStep,
-            Paths.get(UberRDotJavaUtil.getPathToGeneratedRDotJavaSrcFiles(getBuildTarget())),
+            UberRDotJavaUtil.getPathToGeneratedRDotJavaSrcFiles(getBuildTarget()),
             tmpStringsDirPath));
       }
     }
@@ -962,7 +962,7 @@ public class AndroidBinaryRule extends DoNotUseAbstractBuildable implements
       Set<String> classpathEntriesToDex,
       Set<String> depsProguardConfigs,
       ImmutableList.Builder<Step> commands,
-      Set<String> resDirectories) {
+      Set<Path> resDirectories) {
     final ImmutableSetMultimap<JavaLibraryRule, String> classpathEntriesMap =
         getTransitiveClasspathEntries();
     ImmutableSet.Builder<String> additionalLibraryJarsForProguardBuilder = ImmutableSet.builder();
